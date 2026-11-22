@@ -1,0 +1,1019 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, GoogleAuthProvider, signInWithPopup, updatePassword } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-auth.js";
+import { getFirestore, writeBatch, doc, arrayUnion, setDoc, getDoc, collection, addDoc, getDocs, query, orderBy, where, serverTimestamp, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-firestore.js";
+
+// ==========================================
+// 1. BẢO VỆ CHỐNG DEVTOOLS (F12, Chuột Phải)
+// ==========================================
+document.addEventListener('contextmenu', event => event.preventDefault());
+
+document.addEventListener('keydown', function(event) {
+    // Chặn F12
+    if (event.key === 'F12' || event.keyCode === 123) {
+        event.preventDefault();
+        return false;
+    }
+    // Chặn Ctrl+Shift+I / Cmd+Option+I (Inspect)
+    if ((event.ctrlKey && event.shiftKey && event.key === 'I') || (event.metaKey && event.altKey && event.key === 'i')) {
+        event.preventDefault();
+        return false;
+    }
+    // Chặn Ctrl+Shift+J / Cmd+Option+J (Console)
+    if ((event.ctrlKey && event.shiftKey && event.key === 'J') || (event.metaKey && event.altKey && event.key === 'j')) {
+        event.preventDefault();
+        return false;
+    }
+    // Chặn Ctrl+Shift+C / Cmd+Option+C (Inspect Element)
+    if ((event.ctrlKey && event.shiftKey && event.key === 'C') || (event.metaKey && event.altKey && event.key === 'c')) {
+        event.preventDefault();
+        return false;
+    }
+    // Chặn Ctrl+U / Cmd+U (View Source)
+    if ((event.ctrlKey && event.key === 'u') || (event.metaKey && event.key === 'u')) {
+        event.preventDefault();
+        return false;
+    }
+});
+// 2. CONFIGURATION
+export const defaultConfig = {
+    server_name: "Cornmc.vn",
+    server_ip: "cornmc.vn",
+    discord_link: "https://dsc.gg/cornmc",
+    welcome_title: "Chào mừng đến với Cornmc.vn",
+    welcome_description: "Thế giới sinh tồn đầy thử thách và sáng tạo!"
+};
+
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAfQZr63_aYH_tqxGEuBupqKPzNAxoQEOw",
+    authDomain: "cornminer-edb42.firebaseapp.com",
+    projectId: "cornminer-edb42",
+    storageBucket: "cornminer-edb42.firebasestorage.app",
+    messagingSenderId: "679321936018",
+    appId: "1:679321936018:web:01e4660bd723ab2ae8064b",
+    measurementId: "G-T4B1T6L981"
+};
+
+// 3. INIT FIREBASE
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+export const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
+
+// ==========================================
+// A. AUTHENTICATION FUNCTIONS
+// ==========================================
+
+export const getCurrentUser = () => auth.currentUser;
+
+// Theo dõi trạng thái đăng nhập
+export function subscribeToAuth(callback) {
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            try {
+                const userRef = doc(db, "users", user.uid);
+                const snap = await getDoc(userRef);
+                let role = 'member';
+                let dbData = {};
+
+                if (snap.exists()) {
+                    dbData = snap.data();
+                    role = dbData.role || 'member';
+                    localStorage.setItem('cached_user_role', role);
+                    localStorage.setItem('cached_user_name', user.displayName);
+                } else {
+
+                    dbData = {
+                        username: user.displayName || "User",
+                        email: user.email,
+                        photoURL: user.photoURL,
+                        role: 'member',
+                        joinedAt: serverTimestamp()
+                    };
+                    await setDoc(userRef, dbData);
+                }
+
+                callback(user, role, dbData);
+            } catch (e) {
+                callback(user, 'member', {});
+            }
+        } else {
+            callback(null, 'guest', null);
+        }
+    });
+}
+
+// Đăng nhập: Chấp nhận cả Tên nhân vật HOẶC Email thật
+export async function loginUser(input, password) {
+    let email = input.trim();
+    // Nếu không có @, tự động coi là user ảo
+    if (!email.includes('@')) {
+        email = `${email.toLowerCase()}@cornmc.vn`;
+    }
+    return await signInWithEmailAndPassword(auth, email, password);
+}
+
+// Đăng ký: CHỈ CẦN USERNAME + PASSWORD
+export async function registerUser(username, password) {
+    const fakeEmail = `${username.trim().toLowerCase()}@cornmc.vn`;
+
+    const cred = await createUserWithEmailAndPassword(auth, fakeEmail, password);
+    await updateProfile(cred.user, { displayName: username });
+
+    // Lưu vào Firestore
+    await setDoc(doc(db, "users", cred.user.uid), {
+        username: username,
+        email: fakeEmail, // Lưu email ảo để quản lý
+        role: 'member',
+        photoURL: null, // Để null, UI sẽ tự lấy skin Minecraft
+        joinedAt: serverTimestamp()
+    });
+    return cred.user;
+}
+
+// Quên mật khẩu (Chỉ dùng được nếu User đăng ký bằng Google hoặc Email thật sau này)
+export async function resetPassword(email) {
+    return await sendPasswordResetEmail(auth, email);
+}
+
+export async function loginGoogle() {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+}
+
+export async function loginEmail(email, password) {
+    return await signInWithEmailAndPassword(auth, `${email}@cornmc.vn`, password);
+}
+
+export async function registerEmail(username, password) {
+    const cred = await createUserWithEmailAndPassword(auth, `${username}@cornmc.vn`, password);
+    await updateProfile(cred.user, { displayName: username });
+    // Tạo data user
+    await setDoc(doc(db, "users", cred.user.uid), {
+        username: username,
+        role: 'member',
+        photoURL: null,
+        joinedAt: serverTimestamp()
+    });
+    return cred.user;
+}
+
+export async function logout() {
+    return await signOut(auth);
+}
+
+export async function updateUserProfile(displayName, photoURL, discordLink, websiteLink) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No user logged in");
+
+    // Update Auth
+    await updateProfile(user, { displayName, photoURL });
+
+    // Update Firestore, bao gồm các trường mới
+    // Sử dụng toán tử spread (...) để merge các trường mới vào object data
+    // Nếu discordLink/websiteLink là undefined, chúng sẽ không được thêm vào object
+    const userRef = doc(db, "users", user.uid);
+    const updateData = { username: displayName, photoURL: photoURL };
+    if (discordLink !== undefined) updateData.discordLink = discordLink;
+    if (websiteLink !== undefined) updateData.websiteLink = websiteLink;
+    await updateDoc(userRef, updateData);
+}
+
+export async function changeUserPassword(newPassword) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("No user logged in");
+    await updatePassword(user, newPassword);
+}
+
+// ==========================================
+// B. DATA FETCHING (POSTS, USERS, ETC)
+// ==========================================
+// Lấy danh sách tin tức
+export async function fetchNews() {
+    const q = query(collection(db, "news"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// Lấy danh sách hướng dẫn
+export async function fetchGuides() {
+    const q = query(collection(db, "guides"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// Lấy danh sách bài viết diễn đàn theo trạng thái
+export async function fetchForumPosts(status) {
+    const q = query(collection(db, "forum_posts"), where("status", "==", status), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// Lấy danh sách Users (Admin Panel)
+export async function fetchAllUsers() {
+    const q = query(collection(db, "users"), orderBy("joinedAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// Lấy danh sách thành viên Staff (Media, Helper, Dev, Admin)
+export async function fetchStaffMembers() {
+    const staffRoles = ['media', 'helper', 'staff', 'mod', 'dev', 'admin'];
+    const q = query(collection(db, "users"), where("role", "in", staffRoles), orderBy("role", "desc"), orderBy("joinedAt", "asc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+
+export async function fetchMyPosts(uid) {
+    const q = query(
+        collection(db, "forum_posts"),
+        where("authorId", "==", uid),
+        orderBy("createdAt", "desc")
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// ==========================================
+// C. DATA MUTATION (ADD, UPDATE, DELETE)
+// ==========================================
+
+export async function createPost(collectionName, data) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Must be logged in");
+
+    return await addDoc(collection(db, collectionName), {
+        ...data,
+        author: user.displayName,
+        authorId: user.uid,
+        createdAt: serverTimestamp()
+    });
+}
+
+export async function deleteDocument(collectionName, docId) {
+    return await deleteDoc(doc(db, collectionName, docId));
+}
+
+export async function editDocument(collectionName, docId, data) {
+    return await updateDoc(doc(db, collectionName, docId), data);
+}
+
+// Upload Hình Ảnh Lên ImgBB
+export async function uploadImage(file) {
+    const IMGBB_API_KEY = "c0a95bc4dd1aa09966652767e131ef5c";
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            return data.data.url; // Trả về link ảnh trực tiếp (direct link)
+        } else {
+            throw new Error(data.error.message || "Lỗi tải ảnh lên ImgBB");
+        }
+    } catch (error) {
+        console.error("Lỗi upload ảnh:", error);
+        throw error;
+    }
+}
+
+// Comments
+export async function fetchComments(postId) {
+    const q = query(collection(db, "forum_posts", postId, "comments"), orderBy("createdAt", "asc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+export async function addComment(postId, content, role) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Must be logged in");
+
+    return await addDoc(collection(db, "forum_posts", postId, "comments"), {
+        content: content,
+        uid: user.uid,
+        username: user.displayName,
+        avatar: user.photoURL || `https://mc-heads.net/avatar/${user.displayName}`,
+        role: role,
+        createdAt: serverTimestamp()
+    });
+}
+
+export async function deleteComment(postId, commentId) {
+    return await deleteDoc(doc(db, "forum_posts", postId, "comments", commentId));
+}
+
+// User Management (Admin)
+export async function deleteUserAndData(uid) {
+    return await deleteDoc(doc(db, "users", uid));
+}
+
+// ==========================================
+// D. NHÂN SỰ & BÁO CÁO (INTERNAL SYSTEM)
+// ==========================================
+
+// Gửi báo cáo công việc
+export async function submitWorkReport(data) {
+    const user = auth.currentUser;
+    const role = localStorage.getItem('cached_user_role') || 'member';
+
+    return await addDoc(collection(db, "work_reports"), {
+        ...data,
+        uid: user.uid,
+        author: user.displayName,
+        authorRole: role,
+        status: 'pending',
+        createdAt: serverTimestamp()
+    });
+}
+
+// Lấy danh sách báo cáo (Cho Staff/Admin)
+export async function fetchAllWorkReports() {
+    const q = query(collection(db, "work_reports"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// Lấy danh sách báo cáo cá nhân
+export async function fetchMyWorkReports(uid) {
+    const q = query(collection(db, "work_reports"), where("uid", "==", uid));
+    const snap = await getDocs(q);
+    const reports = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Sắp xếp trên client để tránh lỗi cần tạo Index trên Firebase
+    return reports.sort((a, b) => {
+        const timeA = a.createdAt ? a.createdAt.seconds : 0;
+        const timeB = b.createdAt ? b.createdAt.seconds : 0;
+        return timeB - timeA; // Sắp xếp giảm dần (mới nhất lên trên)
+    });
+}
+
+// Từ chối báo cáo
+export async function rejectWorkReport(docId, reason) {
+    return await updateDoc(doc(db, "work_reports", docId), {
+        status: 'rejected',
+        rejectReason: reason,
+        rejectedAt: serverTimestamp()
+    });
+}
+
+// Chỉnh sửa báo cáo (lưu lịch sử)
+export async function editWorkReportUser(docId, newData) {
+    const docRef = doc(db, "work_reports", docId);
+    const snap = await getDoc(docRef);
+    if (!snap.exists()) throw new Error("Báo cáo không tồn tại");
+
+    const oldData = snap.data();
+
+    // Lưu bản cũ vào mảng editHistory
+    const historyItem = {
+        task: oldData.task,
+        percent: oldData.percent,
+        link: oldData.link || "",
+        images: oldData.images || [],
+        editedAt: serverTimestamp()
+    };
+
+    return await updateDoc(docRef, {
+        ...newData,
+        editHistory: arrayUnion(historyItem)
+    });
+}
+
+// Lấy lịch sử lương thưởng cá nhân
+export async function fetchMyPayroll(uid) {
+    const q = query(collection(db, "payroll_history"), where("uid", "==", uid), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// Lấy tất cả lịch sử lương thưởng (Admin)
+export async function fetchAllPayroll() {
+    const q = query(collection(db, "payroll_history"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// Chỉnh sửa số lượng trong lịch sử lương thưởng (Admin)
+export async function updatePayrollAmount(docId, newAmount) {
+    return await updateDoc(doc(db, "payroll_history", docId), {
+        amount: Number(newAmount),
+        updatedAt: serverTimestamp()
+    });
+}
+
+// Tạo phiếu lương/thưởng (Chỉ Admin)
+export async function createPayrollEntry(targetUid, amount, reason) {
+    await addDoc(collection(db, "payroll_history"), {
+        uid: targetUid,
+        amount: Number(amount),
+        reason: reason,
+        createdAt: serverTimestamp()
+    });
+
+    // Tự động tạo một thông báo cho người nhận
+    return await addDoc(collection(db, "notifications"), {
+        uid: targetUid,
+        message: `💰 Bạn vừa nhận được ${Number(amount).toLocaleString()} coin cho: ${reason}`,
+        isRead: false,
+        createdAt: serverTimestamp()
+    });
+}
+
+// ==========================================
+// E. HỆ THỐNG RÚT TIỀN (WITHDRAW)
+// ==========================================
+
+export async function createWithdrawRequest(amount, type, bankName, accountNumber, accountName, ingameName, qrUrl) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Vui lòng đăng nhập!");
+
+    // Check total coin before withdraw
+    const q = query(collection(db, "payroll_history"), where("uid", "==", user.uid));
+    const snap = await getDocs(q);
+    let totalEarned = 0;
+    snap.docs.forEach(doc => totalEarned += (Number(doc.data().amount) || 0));
+
+    const wq = query(collection(db, "withdraw_requests"), where("uid", "==", user.uid));
+    const wSnap = await getDocs(wq);
+    let totalWithdrawn = 0;
+    wSnap.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.status !== 'rejected') {
+            totalWithdrawn += (Number(data.amount) || 0);
+        }
+    });
+
+    const balance = totalEarned - totalWithdrawn;
+    if (balance < amount) {
+        throw new Error("Số dư không đủ để tạo lệnh rút!");
+    }
+
+    return await addDoc(collection(db, "withdraw_requests"), {
+        uid: user.uid,
+        author: user.displayName || user.email.split('@')[0],
+        amount: Number(amount),
+        type: type, // 'game' (1:1) or 'atm' (1:0.5)
+        bankName: bankName || null,
+        accountNumber: accountNumber || null,
+        accountName: accountName || null,
+        ingameName: ingameName || null,
+        qrUrl: qrUrl || null,
+        status: 'pending', // pending, approved, rejected
+        createdAt: serverTimestamp()
+    });
+}
+
+export async function fetchMyWithdraws(uid) {
+    const q = query(collection(db, "withdraw_requests"), where("uid", "==", uid));
+    const snap = await getDocs(q);
+    const requests = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return requests.sort((a, b) => {
+        const timeA = a.createdAt ? a.createdAt.seconds : 0;
+        const timeB = b.createdAt ? b.createdAt.seconds : 0;
+        return timeB - timeA;
+    });
+}
+
+export async function fetchAllWithdraws() {
+    const q = query(collection(db, "withdraw_requests"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+export async function updateWithdrawStatus(docId, status, rejectReason = null) {
+    const data = { status: status, updatedAt: serverTimestamp() };
+    if (status === 'rejected' && rejectReason) {
+        data.rejectReason = rejectReason;
+    }
+    return await updateDoc(doc(db, "withdraw_requests", docId), data);
+}
+
+// ==========================================
+// F. HỆ THỐNG GIAO VIỆC (TASKS)
+// ==========================================
+
+// Tạo nhiệm vụ mới (Admin/Quản lý)
+export async function assignTask(title, description, targetRole) {
+    const user = auth.currentUser;
+    return await addDoc(collection(db, "tasks"), {
+        title: title,
+        description: description,
+        targetRole: targetRole, // 'media', 'helper', 'staff', 'dev', 'all'
+        assigner: user.displayName,
+        status: 'open',
+        createdAt: serverTimestamp()
+    });
+}
+
+// Lấy danh sách nhiệm vụ (Lọc trực tiếp bằng Code để tránh lỗi Index Firebase)
+export async function fetchTasksForRole(role) {
+    const q = query(collection(db, "tasks"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    const allTasks = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // Nếu là Admin/Manager xem hết, nếu là nhân viên thì chỉ xem việc của bộ phận mình hoặc việc chung
+    if (['admin', 'dev', 'mod', 'staff'].includes(role)) return allTasks;
+    return allTasks.filter(t => t.targetRole === role || t.targetRole === 'all');
+}
+
+// Kiểm tra xem ID Discord đã có ai liên kết chưa
+export async function checkDiscordIdExists(discordId) {
+    const q = query(collection(db, "users"), where("discordLink", "==", discordId));
+    const snap = await getDocs(q);
+    return !snap.empty; // Trả về true nếu ID này đã tồn tại trong database
+}
+
+// ==========================================
+// G. HỆ THỐNG GIVEAWAY & SỰ KIỆN
+// ==========================================
+
+// 1. Tạo Giveaway mới (Chỉ Admin)
+export async function createGiveaway(title, prize, endTimeStr) {
+    return await addDoc(collection(db, "giveaways"), {
+        title: title,
+        prize: prize,
+        endTime: endTimeStr,
+        participants: [], // Mảng chứa ID những người tham gia
+        status: 'active',
+        createdAt: serverTimestamp()
+    });
+}
+
+// Thay thế hàm fetchActiveGiveaways cũ bằng hàm này
+export async function fetchActiveGiveaways() {
+    // Đã gỡ bỏ bộ lọc "status" để hiển thị cả sự kiện đã kết thúc
+    const q = query(collection(db, "giveaways"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+// 3. Nút Báo Danh (Kiểm tra Discord trước khi cho tham gia)
+export async function joinGiveaway(giveawayId) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Vui lòng đăng nhập!");
+
+    // BƯỚC KIỂM TRA QUAN TRỌNG: Check xem đã liên kết Discord chưa
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+
+    const discordId = userSnap.data()?.discordLink;
+    // Kiểm tra xem ID có tồn tại và đúng định dạng số ID Discord không
+    if (!discordId || !/^\d{17,19}$/.test(discordId)) {
+        throw new Error("NOT_VERIFIED"); // Ném ra mã lỗi riêng để UI xử lý
+    }
+
+    const giveawayRef = doc(db, "giveaways", giveawayId);
+    const gwSnap = await getDoc(giveawayRef);
+    const participants = gwSnap.data()?.participants || [];
+
+    if (participants.includes(user.uid)) {
+        throw new Error("ALREADY_JOINED");
+    }
+
+    // Nhét UID của người chơi vào mảng danh sách
+    await updateDoc(giveawayRef, {
+        participants: arrayUnion(user.uid)
+    });
+}
+
+// 4. Chốt Giveaway (Quay random người trúng thưởng)
+export async function endGiveaway(giveawayId) {
+    const giveawayRef = doc(db, "giveaways", giveawayId);
+    const gwSnap = await getDoc(giveawayRef);
+    if (!gwSnap.exists()) throw new Error("Không tìm thấy sự kiện!");
+
+    const data = gwSnap.data();
+    const participants = data.participants || [];
+    let winnerName = "Không có ai tham gia";
+    let winnerUid = null;
+    let winnerDiscordId = null; // Thêm biến lưu ID Discord
+
+    if (participants.length > 0) {
+        // Quay random 1 người trong danh sách
+        winnerUid = participants[Math.floor(Math.random() * participants.length)];
+
+        // Lấy Tên và ID Discord của người đó
+        const userSnap = await getDoc(doc(db, "users", winnerUid));
+        if (userSnap.exists()) {
+            winnerName = userSnap.data().username || "Ẩn danh";
+            winnerDiscordId = userSnap.data().discordLink; // Lấy ID để lát nữa Bot Tag tên
+        }
+    }
+
+    // Cập nhật trạng thái sự kiện
+    await updateDoc(giveawayRef, {
+        status: 'closed',
+        winnerUid: winnerUid,
+        winnerName: winnerName,
+        endedAt: serverTimestamp()
+    });
+
+    if (winnerDiscordId) {
+        await addDoc(collection(db, "discord_dms"), {
+            discordId: winnerDiscordId,
+            type: 'giveaway_winner',
+            title: data.title,
+            prize: data.prize,
+            winnerName: winnerName,
+            createdAt: serverTimestamp()
+        });
+    }
+
+    // Trả về một Gói dữ liệu (Gồm Tên người thắng, Giải thưởng, Tên sự kiện, ID Discord)
+    return { winnerName, title: data.title, prize: data.prize, winnerDiscordId };
+}
+
+// ==========================================
+// H. HỆ THỐNG API KEY
+// ==========================================
+
+export async function getApiKeySettings() {
+    const settingsRef = doc(db, "settings", "api_key_config");
+    const snap = await getDoc(settingsRef);
+    if (!snap.exists()) return { pricePerHour: 50 };
+    return snap.data();
+}
+
+export async function updateApiKeySettings(pricePerHour) {
+    const settingsRef = doc(db, "settings", "api_key_config");
+    await setDoc(settingsRef, {
+        pricePerHour: Number(pricePerHour),
+        updatedAt: serverTimestamp()
+    }, { merge: true });
+}
+
+export async function rentApiKey(hours) {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Vui lòng đăng nhập!");
+
+    // Lấy giá thuê từ Database (Chống client gửi sai giá)
+    const settings = await getApiKeySettings();
+    const pricePerHour = settings.pricePerHour || 50;
+
+    const cost = Number(hours) * Number(pricePerHour);
+
+    // Check total coin
+    const q = query(collection(db, "payroll_history"), where("uid", "==", user.uid));
+    const snap = await getDocs(q);
+    let totalEarned = 0;
+    snap.docs.forEach(doc => totalEarned += (Number(doc.data().amount) || 0));
+
+    const wq = query(collection(db, "withdraw_requests"), where("uid", "==", user.uid));
+    const wSnap = await getDocs(wq);
+    let totalWithdrawn = 0;
+    wSnap.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.status !== 'rejected') {
+            totalWithdrawn += (Number(data.amount) || 0);
+        }
+    });
+
+    const balance = totalEarned - totalWithdrawn;
+    if (balance < cost) {
+        throw new Error("Số dư Coin trong ví không đủ để thuê!");
+    }
+
+    // 1. Sinh random API Key
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let apiKey = 'CORN-';
+    for (let i = 0; i < 20; i++) {
+        apiKey += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    // Tính thời gian hết hạn (hiện tại + số giờ * 3600000ms)
+    const expiresAtMs = Date.now() + (hours * 60 * 60 * 1000);
+
+    // 2. Chuyển sang dùng Batch Write để đảm bảo cả 2 lệnh thực thi cùng lúc
+    const batch = writeBatch(db);
+
+    // Tạo ID trước cho cả 2 bản ghi
+    const withdrawRef = doc(collection(db, "withdraw_requests"));
+    const apiKeyRef = doc(collection(db, "api_keys"));
+
+    // Lệnh trừ tiền
+    batch.set(withdrawRef, {
+        uid: user.uid,
+        author: user.displayName || user.email.split('@')[0],
+        amount: cost,
+        type: 'apikey', 
+        status: 'approved',
+        createdAt: serverTimestamp()
+    });
+
+    // Lệnh lưu API Key
+    batch.set(apiKeyRef, {
+        uid: user.uid,
+        username: user.displayName || user.email.split('@')[0],
+        key: apiKey,
+        hours: hours,
+        cost: cost,
+        withdrawId: withdrawRef.id, // Lưu ID giao dịch trừ tiền để Rules đối chiếu
+        expiresAtMs: expiresAtMs,
+        status: 'active',
+        createdAt: serverTimestamp()
+    });
+
+    // 3. Thực thi transaction
+    await batch.commit();
+    return { id: apiKeyRef.id };
+}
+
+export async function fetchMyApiKeys(uid) {
+    const q = query(collection(db, "api_keys"), where("uid", "==", uid));
+    const snap = await getDocs(q);
+    const keys = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return keys.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds);
+}
+
+export async function fetchAllApiKeys() {
+    const q = query(collection(db, "api_keys"), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+
+export async function revokeApiKey(id) {
+    return await updateDoc(doc(db, "api_keys", id), {
+        status: 'revoked',
+        updatedAt: serverTimestamp()
+    });
+}
+
+// ==========================================
+// I. HỆ THỐNG DISCORD WEBHOOK
+// ==========================================
+export async function sendDiscordWebhook(message, embeds = []) {
+    // 🔴 BẮT BUỘC: THAY LINK WEBHOOK CỦA BẠN VÀO ĐÂY
+    // (Lấy trong Cài đặt Kênh Discord -> Tích hợp -> Webhook)
+    const webhookUrl = "https://discord.com/api/webhooks/xxxx/yyyy";
+
+    if (!webhookUrl || webhookUrl.includes("xxxx")) {
+        console.warn("Chưa cấu hình Link Webhook Discord!");
+        return;
+    }
+
+    try {
+        await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                content: message,
+                embeds: embeds
+            })
+        });
+    } catch (error) {
+        console.error("Lỗi gửi Webhook Discord:", error);
+    }
+}
+// ==========================================
+// H. UI UTILITIES & ERROR HANDLING
+// ==========================================
+export function getFirebaseErrorMessage(err) {
+    if (!err) return "Lỗi không xác định!";
+    const code = err.code || "";
+    const msg = err.message || "";
+    switch (code) {
+        case 'auth/invalid-credential':
+        case 'auth/user-not-found':
+        case 'auth/wrong-password':
+            return "Sai thông tin đăng nhập (Tên nhân vật/Email hoặc mật khẩu không chính xác)!";
+        case 'auth/email-already-in-use':
+            return "Tên nhân vật này đã có người đăng ký! Vui lòng chọn tên khác.";
+        case 'auth/weak-password':
+            return "Mật khẩu quá yếu (phải dài ít nhất 6 ký tự).";
+        case 'auth/too-many-requests':
+            return "Bạn đã nhập sai quá nhiều lần. Vui lòng đợi một lát rồi thử lại!";
+        case 'auth/network-request-failed':
+            return "Mất kết nối mạng! Vui lòng kiểm tra lại đường truyền internet.";
+        case 'auth/requires-recent-login':
+            return "Vì lý do bảo mật, bạn cần Đăng Xuất và Đăng Nhập lại để thực hiện hành động này!";
+        case 'auth/invalid-email':
+            return "Địa chỉ Email hoặc Tên nhân vật không hợp lệ!";
+        default:
+            if (msg.includes('sendPasswordResetEmail') || code.includes('reset')) {
+                return "Gửi email khôi phục thất bại! Kiểm tra lại địa chỉ email hoặc tài khoản này chưa liên kết email thực.";
+            }
+            return `Lỗi hệ thống: ${msg}`;
+    }
+}
+
+export function showCustomModal(title, message, type = 'info', onConfirm = null) {
+    let modal = document.getElementById('global-modal');
+    if (!modal) {
+        const modalHtml = `
+            <div id="global-modal" class="modal" style="z-index: 9999;">
+                <div class="modal-content glass-intense rounded-2xl modal-sm text-center border border-purple-500/50 p-6">
+                    <div class="modal-body">
+                        <div id="global-modal-icon" class="text-5xl mb-4">🔔</div>
+                        <h3 id="global-modal-title" class="text-2xl font-black title-font text-white mb-2"></h3>
+                        <p id="global-modal-message" class="text-gray-300 text-sm mb-6 leading-relaxed"></p>
+                        <div id="global-modal-actions" class="flex justify-center gap-4"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        modal = document.getElementById('global-modal');
+    }
+
+    const titleEl = document.getElementById('global-modal-title');
+    const msgEl = document.getElementById('global-modal-message');
+    const actionsEl = document.getElementById('global-modal-actions');
+    const iconEl = document.getElementById('global-modal-icon');
+    const modalContent = modal.querySelector('.modal-content');
+
+    titleEl.innerText = title;
+    msgEl.innerHTML = message.replace(/\n/g, '<br>');
+    actionsEl.innerHTML = '';
+
+    if (type === 'news') {
+        modalContent.classList.add('is-news');
+    } else {
+        modalContent.classList.remove('is-news');
+    }
+
+    if (type === 'danger') {
+        iconEl.innerHTML = `<svg class="w-16 h-16 mx-auto mb-2 text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>`;
+        titleEl.className = "text-2xl font-black title-font text-red-500 mb-2";
+    } else if (type === 'confirm') {
+        iconEl.innerHTML = `<svg class="w-16 h-16 mx-auto mb-2 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+        titleEl.className = "text-2xl font-black title-font text-yellow-400 mb-2";
+    } else if (type === 'news') {
+        iconEl.innerHTML = '';
+        titleEl.className = "text-3xl font-black title-font text-cyan-400 mb-4 text-center";
+    } else {
+        iconEl.innerHTML = `<svg class="w-16 h-16 mx-auto mb-2 text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+        titleEl.className = "text-2xl font-black title-font text-cyan-400 mb-2";
+    }
+
+    if (type === 'confirm' || type === 'danger') {
+        const btnCancel = document.createElement('button');
+        btnCancel.className = "text-gray-400 hover:text-white font-bold text-sm px-4 py-2 transition";
+        btnCancel.innerText = "HỦY BỎ";
+        btnCancel.onclick = () => modal.classList.remove('active');
+        actionsEl.appendChild(btnCancel);
+
+        const btnOk = document.createElement('button');
+        btnOk.className = type === 'danger'
+            ? "bg-red-600 hover:bg-red-500 text-white px-6 py-2 rounded-lg font-bold text-sm shadow-lg shadow-red-900/50 transition"
+            : "cyber-btn px-6 py-2 rounded-lg font-bold text-sm text-white transition";
+        btnOk.innerText = type === 'danger' ? "XÓA NGAY" : "ĐỒNG Ý";
+        btnOk.onclick = () => {
+            if (onConfirm) onConfirm();
+            modal.classList.remove('active');
+        };
+        actionsEl.appendChild(btnOk);
+    } else {
+        const btnOk = document.createElement('button');
+        btnOk.className = "cyber-btn px-6 py-2 rounded-lg font-bold text-sm text-white transition";
+        btnOk.innerText = "ĐÓNG";
+        btnOk.onclick = () => modal.classList.remove('active');
+        actionsEl.appendChild(btnOk);
+    }
+
+    // Force reflow and add active class to trigger animation
+    void modal.offsetWidth;
+    modal.classList.add('active');
+}
+
+// ==========================================
+// I. HỆ THỐNG ĐIỂM DANH (TIME TRACKING)
+// ==========================================
+
+export async function clockIn() {
+    const user = auth.currentUser;
+    if (!user) throw new Error("Chưa đăng nhập");
+    const role = localStorage.getItem('cached_user_role') || 'member';
+
+    return await addDoc(collection(db, "time_logs"), {
+        uid: user.uid,
+        username: user.displayName,
+        role: role,
+        clockInTime: serverTimestamp(),
+        clockOutTime: null,
+        durationMinutes: 0,
+        status: 'online'
+    });
+}
+
+export async function clockOut(logId) {
+    const logRef = doc(db, "time_logs", logId);
+
+    const snap = await getDoc(logRef);
+    if (!snap.exists()) throw new Error("Không tìm thấy phiên làm việc");
+
+    const data = snap.data();
+    if (data.status === 'rejected') {
+        throw new Error("REJECTED");
+    }
+
+    let durationMins = 0;
+    if (data.clockInTime) {
+        const inDate = new Date(data.clockInTime.seconds * 1000);
+        const outDate = new Date(); // Lấy time client để tính tạm
+
+        // --- XỬ LÝ NHÂN ĐÔI (x2) THỜI GIAN ---
+        let finalMinutes = 0;
+        try {
+            const settings = await getTimeTrackingSettings();
+            const x2Days = settings.x2_days || [];
+            const x2Hours = settings.x2_hours || [];
+
+            // Tính từng phút một từ inDate đến outDate
+            let currentTime = new Date(inDate.getTime());
+            while (currentTime < outDate) {
+                const day = currentTime.getDay();
+                const hour = currentTime.getHours();
+
+                // Nếu giờ hoặc ngày hiện tại nằm trong danh sách x2 thì +2, ngược lại +1
+                if (x2Days.includes(day) || x2Hours.includes(hour)) {
+                    finalMinutes += 2;
+                } else {
+                    finalMinutes += 1;
+                }
+
+                // Cộng thêm 1 phút
+                currentTime.setMinutes(currentTime.getMinutes() + 1);
+            }
+        } catch (e) {
+            console.error("Lỗi khi tính giờ x2, sử dụng cách tính thường:", e);
+            finalMinutes = Math.round((outDate - inDate) / 60000);
+        }
+
+        durationMins = finalMinutes;
+    }
+
+    await updateDoc(logRef, {
+        clockOutTime: serverTimestamp(),
+        durationMinutes: durationMins,
+        status: 'offline'
+    });
+}
+
+// ---------------- CẤU HÌNH x2 & CỘNG GIỜ ----------------
+export async function getTimeTrackingSettings() {
+    const settingsRef = doc(db, "settings", "time_tracking");
+    const snap = await getDoc(settingsRef);
+    if (!snap.exists()) return { x2_days: [], x2_hours: [] };
+    return snap.data();
+}
+
+export async function updateTimeTrackingSettings(x2Days, x2Hours) {
+    const settingsRef = doc(db, "settings", "time_tracking");
+    await setDoc(settingsRef, {
+        x2_days: x2Days,
+        x2_hours: x2Hours,
+        updatedAt: serverTimestamp()
+    }, { merge: true });
+}
+
+export async function addManualTimeLog(uid, username, role, minutes, reason) {
+    return await addDoc(collection(db, "time_logs"), {
+        uid: uid,
+        username: username,
+        role: role,
+        clockInTime: serverTimestamp(), // Vẫn lưu để query theo tháng
+        clockOutTime: serverTimestamp(),
+        durationMinutes: Number(minutes),
+        status: 'approved', // Duyệt luôn
+        isManual: true,
+        reason: reason
+    });
+}
+
+export async function approveTimeLogStatus(logId) {
+    const logRef = doc(db, "time_logs", logId);
+    await updateDoc(logRef, {
+        status: 'approved'
+    });
+}
+
+export async function rejectTimeLogStatus(logId) {
+    const logRef = doc(db, "time_logs", logId);
+    await updateDoc(logRef, {
+        status: 'rejected'
+    });
+}
+
+export async function fetchCurrentTimeLog(uid) {
+    const q = query(
+        collection(db, "time_logs"),
+        where("uid", "==", uid),
+        where("status", "==", "online")
+    );
+    const snap = await getDocs(q);
+    if (snap.empty) return null;
+    return { id: snap.docs[0].id, ...snap.docs[0].data() };
+}
+
+export async function fetchAllTimeLogs() {
+    const q = query(collection(db, "time_logs"), orderBy("clockInTime", "desc"));
+    const snap = await getDocs(q);
+    return snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+}
+

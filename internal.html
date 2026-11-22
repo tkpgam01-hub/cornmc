@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internal Dashboard - CornMC</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .sidebar-link.active {
+            background: rgba(34, 211, 238, 0.15);
+            border-left: 4px solid #22d3ee;
+            color: #22d3ee;
+            text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+        }
+        /* Tùy chỉnh thanh cuộn siêu đẹp */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.5); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(34,211,238,0.8); }
+    </style>
+</head>
+
+<body class="h-full w-full overflow-hidden flex flex-col md:flex-row bg-[#1c1c22]">
+
+    <canvas id="particle-network"></canvas>
+    <div class="cyber-grid"></div>
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+
+    <div class="md:hidden flex items-center justify-between bg-[#09090b]/90 backdrop-blur-md p-4 border-b border-cyan-500/30 z-30 relative shadow-[0_0_15px_rgba(34,211,238,0.2)]">
+        <h1 class="text-2xl font-black title-font neon-text text-cyan-400">CORN INTERNAL</h1>
+        <button id="mobile-sidebar-btn" class="text-cyan-400 text-2xl font-bold drop-shadow-md">☰</button>
+    </div>
+
+    <div class="flex flex-1 overflow-hidden relative z-10 w-full">
+        <aside id="sidebar-menu"
+            class="absolute md:relative w-64 h-full glass-intense border-r border-cyan-500/20 flex flex-col z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 shadow-[5px_0_15px_rgba(0,0,0,0.5)] md:shadow-none">
+            <div class="p-6 border-b border-white/10 hidden md:block text-center">
+                <h1 class="text-3xl font-black title-font neon-text text-cyan-400">CORNMC </h1>
+                <p class="text-[10px] text-purple-300 uppercase font-bold mt-1 tracking-widest">Project Management</p>
+            </div>
+            <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
+                <button data-tab="wallet"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-lg font-bold flex items-center gap-3 transition active">
+                     Ví & Thu nhập
+                </button>
+                <button data-tab="report"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-lg font-bold flex items-center gap-3 transition">
+                     Báo cáo Tiến độ
+                </button>
+                <button data-tab="rent-apikey"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-lg font-bold flex items-center gap-3 transition text-yellow-400">
+                     Thuê API Key
+                </button>
+
+                <div id="manager-tools" class="hidden pt-4 border-t border-white/10 mt-2">
+                    <p class="px-4 text-[10px] font-bold text-cyan-500 mb-2 uppercase tracking-widest drop-shadow-sm">Quản lý & Điều hành</p>
+                    <button data-tab="assign-task"
+                        class="sidebar-link w-full text-left px-4 py-3 rounded-lg font-bold flex items-center gap-3 transition">
+                         Giao Nhiệm Vụ
+                    </button>
+                    <button data-tab="manage-work"
+                        class="sidebar-link w-full text-left px-4 py-3 rounded-lg font-bold flex items-center gap-3 transition">
+                         Duyệt Báo Cáo
+                    </button>
+                    <button data-tab="payroll"
+                        class="sidebar-link w-full text-left px-4 py-3 rounded-lg font-bold flex items-center gap-3 transition hidden"
+                        id="admin-payroll-btn">
+                         Phát Lương Thưởng
+                    </button>
+                    <button data-tab="user-wallets"
+                        class="sidebar-link w-full text-left px-4 py-3 rounded-lg font-bold flex items-center gap-3 transition hidden"
+                        id="admin-wallets-btn">
+                         Quản Lý Ví
+                    </button>
+                    <button data-tab="statistics"
+                        class="sidebar-link w-full text-left px-4 py-3 rounded-lg font-bold flex items-center gap-3 transition hidden"
+                        id="admin-statistics-btn">
+                         Báo Cáo Thống Kê
+                    </button>
+                    <button data-tab="time-logs"
+                        class="sidebar-link w-full text-left px-4 py-3 rounded-lg font-bold flex items-center gap-3 transition hidden"
+                        id="admin-timelogs-btn">
+                         Thống kê Giờ làm
+                    </button>
+                    <button data-tab="manage-apikey"
+                        class="sidebar-link w-full text-left px-4 py-3 rounded-lg font-bold flex items-center gap-3 transition hidden"
+                        id="admin-apikey-btn">
+                         Quản lý API Key
+                    </button>
+                </div>
+            </nav>
+            <div class="p-4 border-t border-white/10 bg-black/40">
+                <a href="/" class="cyber-btn-secondary block text-center py-3 rounded-lg text-sm text-cyan-400 hover:text-white transition font-bold uppercase tracking-widest">← Về trang chủ</a>
+            </div>
+        </aside>
+
+        <main class="flex-1 overflow-y-auto p-4 sm:p-8 relative custom-scrollbar">
+
+            <div id="tab-wallet" class="tab-content space-y-6">
+                <h2 class="text-4xl font-black title-font neon-text mb-8">VÍ CỦA TÔI</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-panel p-6 rounded-2xl border-l-4 border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.1)] hover:-translate-y-1 transition-transform">
+                        <p class="text-gray-400 text-sm uppercase font-bold tracking-wider mb-2">Tổng thu nhập nhận được</p>
+                        <p id="total-earned" class="text-5xl font-black text-green-400 mt-2 title-font drop-shadow-md">0 Coin</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl border-l-4 border-cyan-500 shadow-[0_0_15px_rgba(34,211,238,0.1)]">
+                        <h3 class="font-bold mb-4 flex items-center gap-2 text-cyan-400 uppercase tracking-wider title-font text-xl drop-shadow-md"> Thông báo mới nhất</h3>
+                        <div id="notification-list" class="space-y-3 max-h-32 overflow-y-auto custom-scrollbar pr-2">
+                            <p class="text-gray-500 text-xs italic">Không có thông báo mới.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-panel rounded-2xl overflow-hidden border border-purple-500/30">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-purple-900/40 text-purple-200 uppercase text-[10px] tracking-wider title-font">
+                            <tr>
+                                <th class="p-4">Ngày nhận</th>
+                                <th class="p-4">Lý do</th>
+                                <th class="p-4 text-right">Số lượng</th>
+                            </tr>
+                        </thead>
+                        <tbody id="payroll-history-body" class="divide-y divide-white/5"></tbody>
+                    </table>
+                </div>
+
+                <!-- KHU VỰC RÚT TIỀN -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                    <!-- Form Rút Tiền -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-yellow-500">
+                        <h3 class="text-2xl font-black title-font text-yellow-400 mb-6 flex items-center gap-2 border-b border-yellow-500/30 pb-4"> RÚT COIN / TIỀN</h3>
+                        <form id="withdraw-form" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold mb-2 uppercase text-yellow-300">Hình thức rút</label>
+                                <select id="withdraw-type" class="cyber-input w-full p-3 rounded-lg font-bold" required>
+                                    <option value="game">Rút vào Game (1 Coin = 1 Coin Game)</option>
+                                    <option value="atm">Rút về ATM/Momo (1 Coin = 500 VNĐ)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-2 uppercase text-yellow-300">Số lượng Coin muốn rút</label>
+                                <input type="number" id="withdraw-amount" min="100" step="100" class="cyber-input w-full p-3 rounded-lg font-bold text-cyan-400 text-xl" placeholder="VD: 10000" required>
+                            </div>
+                            
+                            <!-- Nhập thông tin Ingame (hiển thị khi chọn rút game) -->
+                            <div id="withdraw-game-info" class="space-y-4 bg-yellow-900/20 p-4 rounded-xl border border-yellow-500/30">
+                                <div>
+                                    <label class="block text-xs font-bold mb-2 uppercase text-yellow-400">Tên Ingame (Minecraft)</label>
+                                    <input type="text" id="withdraw-ingame" class="cyber-input w-full p-3 rounded-lg" placeholder="VD: Player123">
+                                </div>
+                            </div>
+                            
+                            <!-- Nhập thông tin ngân hàng (ẩn mặc định nếu chọn rút game) -->
+                            <div id="withdraw-bank-info" class="hidden space-y-4 bg-yellow-900/20 p-4 rounded-xl border border-yellow-500/30">
+                                <div>
+                                    <label class="block text-xs font-bold mb-2 uppercase text-yellow-400">Tên Ngân Hàng / Ví</label>
+                                    <input type="text" id="withdraw-bank" class="cyber-input w-full p-3 rounded-lg" placeholder="VD: Momo, MB Bank, Vietcombank...">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold mb-2 uppercase text-yellow-400">Số Tài Khoản</label>
+                                    <input type="text" id="withdraw-stk" class="cyber-input w-full p-3 rounded-lg" placeholder="Nhập chính xác số tài khoản...">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold mb-2 uppercase text-yellow-400">Tên Chủ Tài Khoản</label>
+                                    <input type="text" id="withdraw-name" class="cyber-input w-full p-3 rounded-lg" placeholder="Nhập tên chủ tài khoản...">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold mb-2 uppercase text-yellow-400 flex items-center gap-2">Mã QR (Nếu có) <span class="text-gray-500 text-[10px]">(Không bắt buộc)</span></label>
+                                    <input type="file" id="withdraw-qr" accept="image/*" class="cyber-input w-full p-2 rounded-lg text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-yellow-600 file:text-white hover:file:bg-yellow-500 cursor-pointer outline-none transition">
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="bg-yellow-600 hover:bg-yellow-500 text-white w-full py-4 rounded-xl font-black title-font text-lg mt-4 shadow-[0_0_15px_rgba(234,179,8,0.3)] transition">TẠO LỆNH RÚT </button>
+                        </form>
+                    </div>
+
+                    <!-- Lịch sử Rút Tiền -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-purple-500">
+                        <h3 class="text-2xl font-black title-font text-purple-400 mb-6 flex items-center gap-2 border-b border-purple-500/30 pb-4"> Lịch sử rút tiền</h3>
+                        <div id="withdraw-history-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                            <p class="text-gray-500 text-sm italic">Đang tải lịch sử...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-report" class="tab-content hidden max-w-7xl">
+                <h2 class="text-4xl font-black title-font neon-text mb-8">BÁO CÁO & NHIỆM VỤ</h2>
+
+                <!-- Widget Điểm danh cho Helper -->
+                <div id="time-tracking-widget" class="hidden glass-panel p-6 rounded-2xl border-l-4 border-cyan-500 mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-black/40 gap-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-cyan-400 uppercase tracking-wider title-font flex items-center gap-2">⏱ Điểm Danh Phiên Làm Việc</h3>
+                        <p class="text-sm text-gray-400 mt-1" id="time-tracking-status">Trạng thái: <span class="text-gray-500 font-bold">Chưa bắt đầu</span></p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button id="btn-clock-in" class="cyber-btn px-6 py-3 rounded-lg font-bold text-sm text-white transition shadow-[0_0_15px_rgba(34,211,238,0.3)]">BẮT ĐẦU LÀM VIỆC</button>
+                        <button id="btn-clock-out" class="bg-red-600 hover:bg-red-500 text-white px-6 py-3 rounded-lg font-bold text-sm shadow-lg shadow-red-900/50 transition hidden">KẾT THÚC (OFFLINE)</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="flex flex-col h-full glass-panel p-6 rounded-2xl">
+                        <h3 class="text-2xl font-black title-font text-cyan-400 mb-6 flex items-center gap-2 border-b border-cyan-500/30 pb-4"> Việc cần làm</h3>
+                        <div id="my-tasks-list" class="space-y-4 flex-1 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                            <p class="text-gray-500 text-sm italic">Đang kiểm tra nhiệm vụ...</p>
+                        </div>
+                    </div>
+
+                    <div class="glass-intense p-6 rounded-2xl shadow-[0_0_30px_rgba(139,92,246,0.15)] border-t-4 border-t-purple-500 relative overflow-hidden group">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                        <h3 class="text-2xl font-black title-font text-purple-400 mb-6 flex items-center gap-2 border-b border-purple-500/30 pb-4 relative z-10"> Nộp báo cáo</h3>
+                        
+                        <form id="work-report-form" class="space-y-5 relative z-10">
+                            <div>
+                                <label class="block text-xs font-bold mb-2 uppercase text-purple-300 tracking-wider">Công việc đang thực hiện</label>
+                                <input type="text" id="report-task" class="cyber-input w-full p-3 rounded-lg font-bold" placeholder="VD: Xây xong khu vực Spawn mới" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-2 uppercase text-purple-300 tracking-wider">Mô tả chi tiết</label>
+                                <textarea id="report-description" rows="3" class="cyber-input w-full p-3 rounded-lg custom-scrollbar" placeholder="Mô tả chi tiết công việc đã làm..."></textarea>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold mb-2 uppercase text-purple-300 tracking-wider">Tiến độ (%)</label>
+                                    <input type="number" id="report-percent" min="0" max="100" class="cyber-input w-full p-3 rounded-lg font-bold text-cyan-400 text-xl" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold mb-2 uppercase text-purple-300 tracking-wider">Số lượng (Bài/Việc)</label>
+                                    <input type="number" id="report-quantity" min="1" value="1" class="cyber-input w-full p-3 rounded-lg font-bold text-pink-400 text-xl" required>
+                                </div>
+                            </div>
+                            <div class="bg-cyan-900/20 p-4 rounded-xl border border-cyan-500/30">
+                                <label class="block text-xs font-bold mb-2 uppercase text-cyan-400 tracking-wider flex items-center gap-2"> Ảnh minh chứng <span class="text-gray-500 text-[10px]">(Max: 10)</span></label>
+                                <input type="file" id="report-images" accept="image/*" multiple class="cyber-input w-full p-2 rounded-lg text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-cyan-600 file:text-white hover:file:bg-cyan-500 cursor-pointer outline-none transition">
+                                <div id="report-image-preview" class="flex flex-wrap gap-3 mt-3"></div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-2 uppercase text-purple-300 tracking-wider">Link bổ sung <span class="text-gray-500 text-[10px]">(Nhiều link thì mỗi link 1 dòng)</span></label>
+                                <textarea id="report-link" rows="3" class="cyber-input w-full p-3 rounded-lg custom-scrollbar" placeholder="https://..."></textarea>
+                            </div>
+                            <button type="submit" class="cyber-btn w-full py-4 rounded-xl font-black title-font text-xl mt-4">GỬI BÁO CÁO </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Lịch sử báo cáo cá nhân -->
+                <div class="mt-8 glass-panel p-6 rounded-2xl border-t-4 border-t-blue-500">
+                    <h3 class="text-2xl font-black title-font text-blue-400 mb-6 flex items-center gap-2 border-b border-blue-500/30 pb-4"> Lịch sử báo cáo của tôi</h3>
+                    <div id="my-reports-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 custom-scrollbar max-h-[600px] overflow-y-auto pr-2">
+                        <p class="text-gray-500 text-sm italic">Đang tải lịch sử báo cáo...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-assign-task" class="tab-content hidden max-w-7xl">
+                <h2 class="text-4xl font-black title-font neon-text mb-8">GIAO NHIỆM VỤ</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <form id="assign-task-form" class="glass-intense p-6 sm:p-8 rounded-2xl space-y-6 h-fit border-t-4 border-t-cyan-500 shadow-[0_0_30px_rgba(34,211,238,0.15)] relative overflow-hidden">
+                        <div class="absolute -left-10 -top-10 w-40 h-40 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="relative z-10">
+                            <label class="block text-xs font-bold mb-2 uppercase text-cyan-400 tracking-wider"> Giao cho Doanh Mục (Bộ phận)</label>
+                            <select id="task-role" class="cyber-input w-full p-3 rounded-lg font-bold">
+                                <option value="all" class="bg-gray-900"> Tất cả bộ phận (Nhiệm vụ chung)</option>
+                                <option value="media" class="bg-gray-900"> Bộ phận Media (Video, Content)</option>
+                                <option value="helper" class="bg-gray-900"> Bộ phận Helper (Hỗ trợ, Wiki)</option>
+                                <option value="staff" class="bg-gray-900"> Bộ phận Staff (Quản lý)</option>
+                                <option value="mod" class="bg-gray-900"> Bộ phận Mod (Kiểm duyệt)</option>
+                                <option value="dev" class="bg-gray-900"> Bộ phận Developer (Code, Build)</option>
+                            </select>
+                        </div>
+                        <div class="relative z-10">
+                            <label class="block text-xs font-bold mb-2 uppercase text-cyan-400 tracking-wider"> Tên nhiệm vụ</label>
+                            <input type="text" id="task-title" class="cyber-input w-full p-3 rounded-lg font-bold" placeholder="VD: Xây dựng Spawn mới..." required>
+                        </div>
+                        <div class="relative z-10">
+                            <label class="block text-xs font-bold mb-2 uppercase text-cyan-400 tracking-wider"> Mô tả chi tiết yêu cầu</label>
+                            <textarea id="task-desc" rows="4" class="cyber-input w-full p-3 rounded-lg text-gray-300" placeholder="Chi tiết các hạng mục cần làm..."></textarea>
+                        </div>
+                        <button type="submit" class="cyber-btn w-full py-4 rounded-xl font-black title-font text-xl relative z-10">PHÁT LỆNH GIAO VIỆC </button>
+                    </form>
+
+                    <div class="glass-panel p-6 rounded-2xl flex flex-col h-full">
+                        <h3 class="text-2xl font-black title-font text-cyan-400 mb-6 border-b border-cyan-500/30 pb-4">Lịch sử giao việc</h3>
+                        <div id="admin-tasks-list" class="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-manage-work" class="tab-content hidden">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 border-b border-white/10 pb-6">
+                    <h2 class="text-4xl font-black title-font neon-text">DUYỆT BÁO CÁO</h2>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                        <div class="flex gap-2">
+                            <select id="search-report-name" class="cyber-input p-2 rounded-lg text-sm font-bold w-40" onchange="loadWorkReports()">
+                                <option value="">Tất cả nhân sự</option>
+                            </select>
+                            <input type="date" id="search-report-date" class="cyber-input p-2 rounded-lg text-sm font-bold">
+                        </div>
+
+                        <div class="flex bg-black/50 p-1.5 rounded-xl border border-purple-500/30 overflow-x-auto w-full sm:w-auto custom-scrollbar shadow-inner">
+                            <button onclick="window.filterReports('all')" id="filter-all" class="report-filter-btn px-5 py-2 rounded-lg text-sm font-bold bg-cyan-600 text-white shadow-[0_0_10px_rgba(34,211,238,0.4)] border border-cyan-400 transition whitespace-nowrap">🌐 Tất cả</button>
+                            <button onclick="window.filterReports('media')" id="filter-media" class="report-filter-btn px-5 py-2 rounded-lg text-sm font-bold text-gray-400 border border-transparent hover:bg-white/10 hover:border-gray-600 transition whitespace-nowrap">🎬 Media</button>
+                            <button onclick="window.filterReports('helper')" id="filter-helper" class="report-filter-btn px-5 py-2 rounded-lg text-sm font-bold text-gray-400 border border-transparent hover:bg-white/10 hover:border-gray-600 transition whitespace-nowrap">🤝 Helper</button>
+                            <button onclick="window.filterReports('staff')" id="filter-staff" class="report-filter-btn px-5 py-2 rounded-lg text-sm font-bold text-gray-400 border border-transparent hover:bg-white/10 hover:border-gray-600 transition whitespace-nowrap">🛡️ Staff</button>
+                            <button onclick="window.filterReports('mod')" id="filter-mod" class="report-filter-btn px-5 py-2 rounded-lg text-sm font-bold text-gray-400 border border-transparent hover:bg-white/10 hover:border-gray-600 transition whitespace-nowrap">🛡️ Mod</button>
+                            <button onclick="window.filterReports('dev')" id="filter-dev" class="report-filter-btn px-5 py-2 rounded-lg text-sm font-bold text-gray-400 border border-transparent hover:bg-white/10 hover:border-gray-600 transition whitespace-nowrap">💻 Dev</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="all-reports-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+
+            <div id="tab-payroll" class="tab-content hidden max-w-7xl mx-auto">
+                <h2 class="text-4xl font-black title-font neon-text mb-8 text-center">PHÁT LƯƠNG & THƯỞNG</h2>
+
+                <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-purple-500 mb-8 max-w-full overflow-x-auto" id="auto-payroll-panel">
+                    <h3 class="text-2xl font-black title-font text-purple-400 mb-6 border-b border-purple-500/30 pb-4 flex items-center justify-between">
+                        TÍNH LƯƠNG TỰ ĐỘNG
+                        <input type="month" id="auto-payroll-month" class="cyber-input p-2 rounded-lg text-sm font-bold w-40" onchange="window.loadAutoPayroll()">
+                    </h3>
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-purple-900/40 text-purple-200 uppercase text-[10px] tracking-wider title-font">
+                            <tr>
+                                <th class="p-3">Nhân Sự</th>
+                                <th class="p-3 text-center">Giờ làm (h)</th>
+                                <th class="p-3 text-center">Bài đăng (bài)</th>
+                                <th class="p-3 text-right">Lương Cơ Bản (Coin)</th>
+                                <th class="p-3 text-center">Thưởng / Phạt (+/-)</th>
+                                <th class="p-3 text-right text-green-400">Tổng Nhận (Coin)</th>
+                                <th class="p-3 text-center">Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auto-payroll-body" class="divide-y divide-white/5">
+                            <tr><td colspan="7" class="p-3 text-center text-gray-500">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div id="payroll-admin-panel" class="glass-intense p-8 rounded-2xl shadow-[0_0_40px_rgba(234,179,8,0.15)] border border-yellow-500/30 relative overflow-hidden h-fit">
+                        <div class="absolute -top-20 -right-20 w-60 h-60 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    </div>
+                    
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-yellow-500 flex flex-col max-h-[600px]">
+                        <h3 class="text-2xl font-black title-font text-yellow-400 mb-6 border-b border-yellow-500/30 pb-4"> DUYỆT LỆNH RÚT TIỀN</h3>
+                        <div id="admin-withdraw-list" class="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                            <p class="text-gray-500 text-sm italic">Đang tải danh sách...</p>
+                        </div>
+                    </div>
+                </div>
+
+                    <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-green-500 flex flex-col max-h-[600px]">
+                            <h3 class="text-2xl font-black title-font text-green-400 mb-6 border-b border-green-500/30 pb-4"> LỊCH SỬ ĐÃ PHÁT LƯƠNG/THƯỞNG</h3>
+                            <div id="admin-payroll-history" class="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                <p class="text-gray-500 text-sm italic">Đang tải danh sách...</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-cyan-500 flex flex-col max-h-[600px]">
+                            <h3 class="text-2xl font-black title-font text-cyan-400 mb-6 border-b border-cyan-500/30 pb-4"> LỊCH SỬ DUYỆT RÚT TIỀN</h3>
+                            <div id="admin-withdraw-history" class="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                <p class="text-gray-500 text-sm italic">Đang tải danh sách...</p>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
+            <div id="tab-user-wallets" class="tab-content hidden max-w-7xl mx-auto">
+                <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-blue-500">
+                    <h3 class="text-3xl font-black title-font neon-text text-blue-400 mb-6 border-b border-blue-500/30 pb-4"> QUẢN LÝ VÍ NHÂN VIÊN</h3>
+                    <div class="overflow-x-auto custom-scrollbar max-h-[700px]">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-blue-900/40 text-blue-200 uppercase text-[10px] tracking-wider title-font">
+                                <tr>
+                                    <th class="p-4">Nhân Sự</th>
+                                    <th class="p-4 text-center">Vai Trò</th>
+                                    <th class="p-4 text-right text-green-400">Tổng Đã Nhận (Coin)</th>
+                                    <th class="p-4 text-right text-red-400">Đã Rút (Coin)</th>
+                                    <th class="p-4 text-right text-yellow-400">Số Dư Hiện Tại</th>
+                                    <th class="p-4 text-center text-blue-400">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-user-balances-body" class="divide-y divide-white/5">
+                                <tr><td colspan="6" class="p-4 text-center text-gray-500 italic">Đang tính toán...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-statistics" class="tab-content hidden max-w-7xl mx-auto">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 border-b border-white/10 pb-6">
+                    <h2 class="text-4xl font-black title-font neon-text">BÁO CÁO THỐNG KÊ</h2>
+                    <div class="flex items-center gap-4">
+                        <input type="month" id="stats-month" class="cyber-input p-2 rounded-lg text-sm font-bold" onchange="loadStatistics()">
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-cyan-500 mb-8" id="monthly-summary-panel">
+                    <h3 class="text-xl font-black title-font text-cyan-400 mb-4 border-b border-cyan-500/30 pb-2"> TỔNG HỢP TRONG THÁNG</h3>
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-cyan-900/40 text-cyan-200 uppercase text-[10px] tracking-wider title-font">
+                                <tr>
+                                    <th class="p-3">Nhân Sự</th>
+                                    <th class="p-3 text-center">Tổng Báo Cáo (Đã duyệt)</th>
+                                    <th class="p-3 text-right">Tổng Giờ Làm (Đã duyệt)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="time-logs-summary-body" class="divide-y divide-white/5">
+                                <tr><td colspan="3" class="p-3 text-center text-gray-500">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-time-logs" class="tab-content hidden max-w-7xl">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 border-b border-white/10 pb-6">
+                    <h2 class="text-4xl font-black title-font neon-text">THỐNG KÊ GIỜ LÀM</h2>
+                    
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="flex flex-wrap items-center gap-2 mb-4 w-full" id="admin-time-log-tools" style="display:none;">
+                            <button onclick="window.openX2SettingsModal()" class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-lg font-bold transition shadow-[0_0_15px_rgba(168,85,247,0.3)]">⚙️ Cài đặt x2 Giờ làm</button>
+                            <button onclick="window.openManualTimeModal()" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg font-bold transition shadow-[0_0_15px_rgba(34,197,94,0.3)]">➕ Cộng giờ thủ công</button>
+                            <button onclick="window.openActiveHoursChart()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold transition shadow-[0_0_15px_rgba(59,130,246,0.3)]">📊 Thống kê Khung giờ</button>
+                        </div>
+                        <div class="flex items-center bg-black/50 p-1 rounded-lg border border-white/10" id="time-log-filters">
+                            <button onclick="filterTimeLogs('all')" id="tl-filter-all" class="tl-filter-btn bg-cyan-600 text-white shadow-[0_0_10px_rgba(34,211,238,0.4)] border-cyan-400 px-4 py-1.5 rounded text-sm font-bold transition">Tất Cả</button>
+                            <button onclick="filterTimeLogs('media')" id="tl-filter-media" class="tl-filter-btn text-gray-400 border-transparent hover:text-white px-4 py-1.5 rounded text-sm font-bold transition">Media</button>
+                            <button onclick="filterTimeLogs('helper')" id="tl-filter-helper" class="tl-filter-btn text-gray-400 border-transparent hover:text-white px-4 py-1.5 rounded text-sm font-bold transition">Helper</button>
+                            <button onclick="filterTimeLogs('staff')" id="tl-filter-staff" class="tl-filter-btn text-gray-400 border-transparent hover:text-white px-4 py-1.5 rounded text-sm font-bold transition">Staff</button>
+                            <button onclick="filterTimeLogs('mod')" id="tl-filter-mod" class="tl-filter-btn text-gray-400 border-transparent hover:text-white px-4 py-1.5 rounded text-sm font-bold transition">Mod</button>
+                            <button onclick="filterTimeLogs('dev')" id="tl-filter-dev" class="tl-filter-btn text-gray-400 border-transparent hover:text-white px-4 py-1.5 rounded text-sm font-bold transition">Dev</button>
+                        </div>
+                        
+                        <select id="time-log-search" class="cyber-input p-2 rounded-lg text-sm font-bold w-40" onchange="loadTimeLogs()">
+                            <option value="">Tất cả nhân sự</option>
+                        </select>
+                        <input type="month" id="time-log-month" class="cyber-input p-2 rounded-lg text-sm font-bold" onchange="loadTimeLogs()">
+                        <button onclick="loadTimeLogs()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg font-bold transition shadow-[0_0_15px_rgba(34,211,238,0.3)]">Làm Mới</button>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl border border-white/10">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-cyan-900/40 text-cyan-200 uppercase text-[10px] tracking-wider title-font" id="time-logs-head">
+                                <tr>
+                                    <th class="p-4">Tên Nhân Sự</th>
+                                    <th class="p-4">Bộ Phận</th>
+                                    <th class="p-4">Trạng Thái</th>
+                                    <th class="p-4">Bắt Đầu (Clock In)</th>
+                                    <th class="p-4">Kết Thúc (Clock Out)</th>
+                                    <th class="p-4 text-right">Tổng Thời Gian</th>
+                                </tr>
+                            </thead>
+                            <tbody id="time-logs-body" class="divide-y divide-white/5">
+                                <tr><td colspan="6" class="p-4 text-center text-gray-500">Đang tải dữ liệu...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="report-detail-modal" class="modal">
+                <div class="modal-content glass-intense rounded-2xl modal-lg border border-cyan-500/50 flex flex-col h-[90vh]">
+                    <div class="modal-header border-b border-cyan-500/30 bg-black/40 rounded-t-2xl">
+                        <h2 class="text-3xl font-black title-font neon-text text-cyan-400">CHI TIẾT BÁO CÁO</h2>
+                        <button class="close-modal text-gray-400 hover:text-red-400 transition text-2xl font-bold">✕</button>
+                    </div>
+                    <div class="modal-body overflow-y-auto custom-scrollbar p-6 sm:p-8 flex-1" id="report-detail-content">
+                        </div>
+                </div>
+            </div>
+            
+            <!-- MODAL CHỈNH SỬA BÁO CÁO -->
+            <div id="edit-report-modal" class="modal">
+                <div class="modal-content glass-intense rounded-2xl modal-md border border-blue-500/50 flex flex-col h-[90vh] sm:h-auto sm:max-h-[90vh]">
+                    <div class="modal-header border-b border-blue-500/30 bg-black/40 rounded-t-2xl p-4 flex justify-between items-center">
+                        <h2 class="text-2xl font-black title-font neon-text text-blue-400">CHỈNH SỬA BÁO CÁO</h2>
+                        <button class="close-modal text-gray-400 hover:text-red-400 transition text-xl font-bold">✕</button>
+                    </div>
+                    <div class="modal-body overflow-y-auto custom-scrollbar p-6">
+                        <form id="edit-report-form" class="space-y-4">
+                            <input type="hidden" id="edit-report-id">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 uppercase text-blue-300">Công việc đang thực hiện</label>
+                                <input type="text" id="edit-report-task" class="cyber-input w-full p-3 rounded-lg font-bold" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 uppercase text-blue-300">Mô tả chi tiết</label>
+                                <textarea id="edit-report-description" rows="3" class="cyber-input w-full p-3 rounded-lg custom-scrollbar" placeholder="Mô tả chi tiết..."></textarea>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold mb-1 uppercase text-blue-300">Tiến độ (%)</label>
+                                    <input type="number" id="edit-report-percent" min="0" max="100" class="cyber-input w-full p-3 rounded-lg font-bold text-cyan-400 text-xl" required>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold mb-1 uppercase text-blue-300">Số lượng</label>
+                                    <input type="number" id="edit-report-quantity" min="1" value="1" class="cyber-input w-full p-3 rounded-lg font-bold text-pink-400 text-xl" required>
+                                </div>
+                            </div>
+                            <div class="bg-cyan-900/20 p-3 rounded-xl border border-cyan-500/30">
+                                <label class="block text-xs font-bold mb-1 uppercase text-cyan-400">Ảnh mới (Tùy chọn, để trống sẽ giữ ảnh cũ)</label>
+                                <input type="file" id="edit-report-images" accept="image/*" multiple class="cyber-input w-full p-2 rounded-lg text-sm text-gray-300">
+                                <div id="edit-report-image-preview" class="flex flex-wrap gap-2 mt-2"></div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 uppercase text-blue-300">Link bổ sung (Mỗi link 1 dòng)</label>
+                                <textarea id="edit-report-link" rows="3" class="cyber-input w-full p-3 rounded-lg custom-scrollbar"></textarea>
+                            </div>
+                            <button type="submit" class="cyber-btn w-full py-3 rounded-xl font-black title-font text-lg mt-2">CẬP NHẬT & LƯU VẾT</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL XEM LỊCH SỬ CHỈNH SỬA BÁO CÁO -->
+            <div id="history-modal" class="modal">
+                <div class="modal-content glass-intense rounded-2xl modal-md border border-purple-500/50 flex flex-col h-[90vh] sm:h-auto sm:max-h-[90vh]">
+                    <div class="modal-header border-b border-purple-500/30 bg-black/40 rounded-t-2xl p-4 flex justify-between items-center">
+                        <h2 class="text-2xl font-black title-font neon-text text-purple-400">LỊCH SỬ CHỈNH SỬA</h2>
+                        <button class="close-modal text-gray-400 hover:text-red-400 transition text-xl font-bold">✕</button>
+                    </div>
+                    <div id="history-content" class="modal-body overflow-y-auto custom-scrollbar p-6 space-y-4">
+                        <!-- Nội dung được js nạp vào -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL CÀI ĐẶT x2 GIỜ LÀM -->
+            <div id="x2-settings-modal" class="modal">
+                <div class="modal-content glass-intense rounded-2xl modal-md border border-purple-500/50 flex flex-col h-[90vh] sm:h-auto sm:max-h-[90vh]">
+                    <div class="modal-header border-b border-purple-500/30 bg-black/40 rounded-t-2xl p-4 flex justify-between items-center">
+                        <h2 class="text-2xl font-black title-font neon-text text-purple-400">CÀI ĐẶT x2 GIỜ LÀM</h2>
+                        <button class="close-modal text-gray-400 hover:text-red-400 transition text-xl font-bold">✕</button>
+                    </div>
+                    <div class="modal-body overflow-y-auto custom-scrollbar p-6">
+                        <form id="x2-settings-form" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-bold mb-2 uppercase text-purple-300">Khung giờ được x2 (0 - 23)</label>
+                                <div class="grid grid-cols-6 gap-2 text-sm text-gray-300" id="x2-hours-grid">
+                                    <!-- Sẽ được điền bằng JS -->
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <label class="block text-sm font-bold mb-2 uppercase text-purple-300">Ngày trong tuần được x2</label>
+                                <div class="grid grid-cols-3 sm:grid-cols-4 gap-2 text-sm text-gray-300" id="x2-days-grid">
+                                    <label class="flex items-center gap-2"><input type="checkbox" value="1" class="x2-day-cb"> Thứ 2</label>
+                                    <label class="flex items-center gap-2"><input type="checkbox" value="2" class="x2-day-cb"> Thứ 3</label>
+                                    <label class="flex items-center gap-2"><input type="checkbox" value="3" class="x2-day-cb"> Thứ 4</label>
+                                    <label class="flex items-center gap-2"><input type="checkbox" value="4" class="x2-day-cb"> Thứ 5</label>
+                                    <label class="flex items-center gap-2"><input type="checkbox" value="5" class="x2-day-cb"> Thứ 6</label>
+                                    <label class="flex items-center gap-2"><input type="checkbox" value="6" class="x2-day-cb"> Thứ 7</label>
+                                    <label class="flex items-center gap-2 text-red-400 font-bold"><input type="checkbox" value="0" class="x2-day-cb"> Chủ Nhật</label>
+                                </div>
+                            </div>
+                            <button type="submit" class="cyber-btn w-full py-3 rounded-xl font-black title-font text-lg mt-4">LƯU CẤU HÌNH</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL CỘNG GIỜ THỦ CÔNG -->
+            <div id="manual-time-modal" class="modal">
+                <div class="modal-content glass-intense rounded-2xl modal-md border border-green-500/50 flex flex-col">
+                    <div class="modal-header border-b border-green-500/30 bg-black/40 rounded-t-2xl p-4 flex justify-between items-center">
+                        <h2 class="text-2xl font-black title-font neon-text text-green-400">CỘNG GIỜ THỦ CÔNG</h2>
+                        <button class="close-modal text-gray-400 hover:text-red-400 transition text-xl font-bold">✕</button>
+                    </div>
+                    <div class="modal-body p-6">
+                        <form id="manual-time-form" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold mb-1 uppercase text-green-300">Chọn Nhân Sự</label>
+                                <select id="manual-time-uid" class="cyber-input w-full p-3 rounded-lg font-bold" required></select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 uppercase text-green-300">Số phút cộng thêm</label>
+                                <input type="number" id="manual-time-minutes" min="1" class="cyber-input w-full p-3 rounded-lg font-bold text-green-400 text-xl" placeholder="VD: 60" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold mb-1 uppercase text-green-300">Lý do</label>
+                                <input type="text" id="manual-time-reason" class="cyber-input w-full p-3 rounded-lg" placeholder="VD: Bù giờ lỗi mạng" required>
+                            </div>
+                            <button type="submit" class="bg-green-600 hover:bg-green-500 text-white w-full py-3 rounded-xl font-black title-font text-lg shadow-[0_0_15px_rgba(34,197,94,0.3)] transition">CỘNG GIỜ </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- TAB THUÊ API KEY -->
+            <div id="tab-rent-apikey" class="tab-content hidden max-w-7xl mx-auto">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 border-b border-white/10 pb-6">
+                    <h2 class="text-4xl font-black title-font neon-text">THUÊ API KEY</h2>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Form Thuê -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-yellow-500 relative overflow-hidden">
+                        <div class="absolute -right-10 -top-10 w-40 h-40 bg-yellow-500/20 rounded-full blur-3xl pointer-events-none"></div>
+                        <h3 class="text-2xl font-black title-font text-yellow-400 mb-6 flex items-center gap-2 border-b border-yellow-500/30 pb-4 relative z-10"> THUÊ MỚI</h3>
+                        
+                        <form id="rent-apikey-form" class="space-y-5 relative z-10">
+                            <div>
+                                <label class="block text-xs font-bold mb-2 uppercase text-yellow-300 tracking-wider">Số giờ muốn thuê</label>
+                                <input type="number" id="apikey-hours" min="1" value="1" class="cyber-input w-full p-3 rounded-lg font-bold text-cyan-400 text-xl" required>
+                            </div>
+                            <div class="bg-black/40 p-4 rounded-xl border border-yellow-500/30 flex justify-between items-center">
+                                <span class="text-sm font-bold text-gray-400">Chi phí (100 Coin / 1h):</span>
+                                <span id="apikey-cost" class="text-xl font-black text-red-400">100 Coin</span>
+                            </div>
+                            <button type="submit" class="cyber-btn w-full py-4 rounded-xl font-black title-font text-xl mt-4 text-yellow-300 shadow-[0_0_15px_rgba(234,179,8,0.3)]">XÁC NHẬN THUÊ</button>
+                        </form>
+                    </div>
+
+                    <!-- Danh sách API Key đang có -->
+                    <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-green-500">
+                        <h3 class="text-2xl font-black title-font text-green-400 mb-6 flex items-center gap-2 border-b border-green-500/30 pb-4"> KEY CỦA TÔI</h3>
+                        <div id="my-apikeys-list" class="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                            <p class="text-gray-500 text-sm italic">Đang tải...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KHU VỰC TẢI MC-PORTABLE-CLIENT -->
+                <div class="mt-10 pt-8 border-t border-white/10">
+                    <div class="glass-panel p-6 sm:p-8 rounded-2xl border-t-4 border-t-cyan-500 relative overflow-hidden bg-gradient-to-r from-cyan-950/40 via-purple-950/30 to-black/60 shadow-[0_0_30px_rgba(34,211,238,0.15)]">
+                        <div class="absolute -right-10 -top-10 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative z-10">
+                            <div class="space-y-2">
+                                <span class="bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Client Download</span>
+                                <h3 class="text-3xl font-black title-font neon-text text-cyan-400 flex items-center gap-2">
+                                    🚀 TẢI BẢN MC-PORTABLE-CLIENT
+                                </h3>
+                                <p class="text-gray-300 text-sm max-w-2xl">
+                                    Tải trực tiếp file chạy <span class="text-cyan-300 font-bold font-mono">mc-portable-client.jar</span> về máy để kết nối và sử dụng cùng API Key đã thuê.
+                                </p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <a href="assets/phienban/mc-portable-client.jar" download="mc-portable-client.jar" class="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white px-8 py-4 rounded-xl font-black title-font text-base shadow-[0_0_25px_rgba(34,197,94,0.4)] transition transform hover:-translate-y-1 flex items-center gap-3">
+                                    <span class="text-xl">⬇️</span> TẢI MC-PORTABLE-CLIENT (.JAR)
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Hướng dẫn sử dụng nhanh -->
+                        <div class="mt-6 pt-6 border-t border-white/10 grid grid-cols-1 md:grid-cols-3 gap-4 text-xs text-gray-300 relative z-10">
+                            <div class="bg-black/40 p-4 rounded-xl border border-white/5">
+                                <p class="text-cyan-400 font-bold uppercase mb-1">1. Tải Client về máy</p>
+                                <p class="text-gray-400">Bấm nút tải file <code class="text-cyan-300 font-mono">mc-portable-client.jar</code> và lưu vào thư mục trên máy bạn.</p>
+                            </div>
+                            <div class="bg-black/40 p-4 rounded-xl border border-white/5">
+                                <p class="text-purple-400 font-bold uppercase mb-1">2. Chuẩn bị Java</p>
+                                <p class="text-gray-400">Đảm bảo máy tính đã cài đặt <a href="https://adoptium.net/temurin/releases/?version=17" target="_blank" rel="noopener noreferrer" class="text-purple-300 underline font-bold">Java 17 hoặc 21 (Adoptium Temurin)</a>.</p>
+                            </div>
+                            <div class="bg-black/40 p-4 rounded-xl border border-white/5">
+                                <p class="text-yellow-400 font-bold uppercase mb-1">3. Nhập API Key</p>
+                                <p class="text-gray-400">Bấm nút <strong class="text-cyan-400">Sao chép Key</strong> ở mục <strong class="text-green-400">KEY CỦA TÔI</strong> và dán vào client khi mở game.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB QUẢN LÝ API KEY (Admin) -->
+            <div id="tab-manage-apikey" class="tab-content hidden max-w-7xl mx-auto">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 border-b border-white/10 pb-6">
+                    <h2 class="text-4xl font-black title-font neon-text">QUẢN LÝ API KEY</h2>
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2 bg-black/40 p-2 rounded-lg border border-cyan-500/30">
+                            <label class="text-xs font-bold text-gray-400">Giá thuê (Coin/h):</label>
+                            <input type="number" id="admin-apikey-price" class="cyber-input w-24 p-1 text-center rounded font-bold text-cyan-400" min="1">
+                            <button onclick="window.updatePriceAction()" class="bg-yellow-600 hover:bg-yellow-500 text-white px-2 py-1 rounded text-xs font-bold transition">LƯU</button>
+                        </div>
+                        <button onclick="loadAllApiKeys()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg font-bold transition shadow-[0_0_15px_rgba(34,211,238,0.3)]">Làm Mới</button>
+                    </div>
+                </div>
+                
+                <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-cyan-500">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-cyan-900/40 text-cyan-200 uppercase text-[10px] tracking-wider title-font">
+                                <tr>
+                                    <th class="p-4">Người Thuê</th>
+                                    <th class="p-4">API Key</th>
+                                    <th class="p-4">Thời Gian Thuê</th>
+                                    <th class="p-4">Hết Hạn</th>
+                                    <th class="p-4">Trạng Thái</th>
+                                    <th class="p-4 text-center">Thao Tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="all-apikeys-body" class="divide-y divide-white/5">
+                                <tr><td colspan="6" class="p-4 text-center text-gray-500">Đang tải dữ liệu...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL THỐNG KÊ KHUNG GIỜ -->
+            <div id="active-hours-chart-modal" class="modal">
+                <div class="modal-content glass-intense rounded-2xl modal-lg border border-blue-500/50 flex flex-col h-[90vh]">
+                    <div class="modal-header border-b border-blue-500/30 bg-black/40 rounded-t-2xl p-4 flex justify-between items-center">
+                        <h2 class="text-2xl font-black title-font neon-text text-blue-400">BIỂU ĐỒ HOẠT ĐỘNG</h2>
+                        <button class="close-modal text-gray-400 hover:text-red-400 transition text-xl font-bold">✕</button>
+                    </div>
+                    <div class="modal-body p-6 flex-1 flex flex-col items-center justify-center">
+                        <div class="w-full h-full relative flex items-center justify-center">
+                            <canvas id="activeHoursChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- Kết thúc w-full -->
+    </div> <!-- Kết thúc flex h-screen -->
+
+    <script>
+        const initParticles = () => {
+            const canvas = document.getElementById('particle-network');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let particlesArray = [];
+
+            function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+            window.addEventListener('resize', resize); resize();
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 2 + 1;
+                    this.speedX = Math.random() * 0.5 - 0.25;
+                    this.speedY = Math.random() * 0.5 - 0.25;
+                    this.color = Math.random() > 0.5 ? '#8b5cf6' : '#22d3ee';
+                }
+                update() {
+                    this.x += this.speedX; this.y += this.speedY;
+                    if (this.x > canvas.width || this.x < 0) this.speedX *= -1;
+                    if (this.y > canvas.height || this.y < 0) this.speedY *= -1;
+                }
+                draw() {
+                    ctx.fillStyle = this.color; ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+                }
+            }
+
+            for (let i = 0; i < Math.floor((canvas.width * canvas.height) / 20000); i++) particlesArray.push(new Particle());
+
+            function animate() {
+                if (!document.body.classList.contains('lite-mode')) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    for (let i = 0; i < particlesArray.length; i++) {
+                        particlesArray[i].update(); particlesArray[i].draw();
+                        for (let j = i; j < particlesArray.length; j++) {
+                            const dx = particlesArray[i].x - particlesArray[j].x;
+                            const dy = particlesArray[i].y - particlesArray[j].y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist < 100) {
+                                ctx.beginPath(); ctx.strokeStyle = `rgba(139, 92, 246, ${0.1 - dist / 1000})`;
+                                ctx.moveTo(particlesArray[i].x, particlesArray[i].y);
+                                ctx.lineTo(particlesArray[j].x, particlesArray[j].y);
+                                ctx.stroke();
+                            }
+                        }
+                    }
+                }
+                requestAnimationFrame(animate);
+            }
+            animate();
+        };
+
+        // Kích hoạt Particles và kiểm tra Lite Mode
+        if (localStorage.getItem('liteMode') === 'on') {
+            document.body.classList.add('lite-mode');
+        }
+        initParticles();
+
+        // Script Tắt mở Menu Mobile
+        document.getElementById('mobile-sidebar-btn')?.addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar-menu');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+            }
+        });
+        
+        // Đóng menu khi bấm vào link chuyển tab (trên điện thoại)
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 768) {
+                    document.getElementById('sidebar-menu').classList.add('-translate-x-full');
+                }
+            });
+        });
+        
+        // Setup Modal Close Button (Vì code JS cũ không bắt được sự kiện modal mới tạo)
+        document.querySelectorAll('.modal').forEach(m => {
+            m.addEventListener('click', e => { if (e.target === m) m.classList.remove('active', 'hidden'); });
+            m.querySelectorAll('.close-modal').forEach(b => b.onclick = () => m.classList.remove('active', 'hidden'));
+        });
+    </script>
+
+    <script type="module" src="assets/js/internal.js"></script>
+</body>
+</html>

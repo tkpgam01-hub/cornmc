@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="vi" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="CornHub - Cổng thông tin trung tâm kết nối toàn bộ hệ sinh thái máy chủ CornMC Network (CornSurvival, CornSMP, Skyblock). Đăng nhập một chạm, tra cứu thống kê, tin tức và cập nhật sự kiện nhanh nhất.">
+    <title>CornHub - Cổng Kết Nối Hệ Thống CornMC Network</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="icon" type="image/jpeg" href="/assets/icon/logo.ico">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-T4B1T6L981"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-T4B1T6L981');
+    </script>
+</head>
+
+<body class="h-full w-full">
+    <canvas id="particle-network"></canvas>
+    <div class="cyber-grid"></div>
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+
+    <!-- GLOBAL HUB NAVIGATION -->
+    <nav class="nav-bar">
+        <div class="w-full max-w-[1400px] mx-auto px-4 lg:px-6">
+            <div class="flex items-center justify-between h-20">
+                <!-- Logo CornHub -->
+                <a href="/" class="flex items-center space-x-3 shrink-0 group">
+                    <div
+                        class="w-12 h-12 rounded-lg glass-panel flex items-center justify-center relative overflow-hidden border border-cyan-500/30 group-hover:border-cyan-400 transition">
+                        <img src="/assets/icon/serverlogoo.png" alt="CornMC Logo" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <span class="text-2xl font-black title-font neon-text whitespace-nowrap tracking-wider block">
+                            CORNHUB
+                        </span>
+                        <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest block -mt-1">CENTRAL
+                            PORTAL</span>
+                    </div>
+                </a>
+
+                <!-- Sub-server Quick Links -->
+                <div class="hidden lg:flex items-center space-x-2">
+                    <a href="#servers" class="nav-link active title-font">MÁY CHỦ</a>
+                    <a href="#resources" class="nav-link title-font">TÀI NGUYÊN</a>
+                    <a href="/survival/" class="nav-link title-font">CORNSURVIVAL</a>
+                    <a href="/smp/" class="nav-link title-font">CORNSMP</a>
+                    <a href="https://discord.gg/cornmc" target="_blank" class="nav-link title-font">DISCORD</a>
+                </div>
+
+                <!-- Right Action Buttons -->
+                <div class="flex items-center space-x-3">
+                    <div
+                        class="status-online flex items-center space-x-2 px-3 py-1.5 rounded-full glass-panel border border-cyan-500/30">
+                        <div class="status-dot"></div>
+                        <span class="text-xs font-bold text-cyan-300" id="network-online">...</span>
+                    </div>
+
+                    <!-- Auth Display Box -->
+                    <div id="auth-display">
+                        <button id="login-btn"
+                            class="cyber-btn px-6 py-2.5 rounded-lg font-bold text-sm title-font">LOGIN</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <main class="relative z-10 pt-20 w-full min-h-screen">
+        <!-- Hero Header -->
+        <section class="min-h-[70vh] flex items-center justify-center px-4 py-16 relative overflow-hidden group">
+            <img src="/assets/image/nenhe.png"
+                class="absolute inset-0 w-full h-full object-cover opacity-60 contrast-110 group-hover:scale-105 transition-transform duration-[10s]">
+            <div class="absolute inset-0"
+                style="background: radial-gradient(circle at center, rgba(9, 9, 11, 0.3) 0%, rgba(9, 9, 11, 0.95) 100%);">
+            </div>
+
+            <div class="max-w-6xl mx-auto text-center relative z-10">
+                <h1
+                    class="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-black title-font neon-text mb-6 leading-none drop-shadow-[0_0_25px_rgba(139,92,246,0.6)]">
+                    CORNHUB
+                </h1>
+
+                <p class="text-xl sm:text-2xl md:text-3xl mb-12 text-purple-100 font-medium drop-shadow-md"
+                    style="letter-spacing: 0.15em; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">
+                    CỔNG KẾT NỐI HỆ THỐNG CORNMC NETWORK
+                </p>
+
+                <!-- Global IP Bar -->
+                <div class="flex flex-wrap items-center justify-center gap-4 mb-8">
+                    <button
+                        onclick="navigator.clipboard.writeText('play.cornmc.vn'); alert('Đã sao chép IP: play.cornmc.vn\nPort PE: 19132');"
+                        class="cyber-btn px-10 py-4 rounded-xl font-bold text-base title-font flex items-center space-x-3 hover:scale-110 transition-transform shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                        <span>IP SERVER</span>
+                    </button>
+                    <a href="https://discord.gg/cornmc" target="_blank"
+                        class="cyber-btn-secondary px-10 py-4 rounded-xl font-bold text-base title-font flex items-center space-x-3 hover:bg-white/10 backdrop-blur-md">
+                        <svg class="w-5 h-5" fill="currentColor" viewbox="0 0 24 24">
+                            <path
+                                d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+                        </svg><span>JOIN DISCORD</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- SERVER NETWORK HUB CARDS -->
+        <section id="servers" class="max-w-6xl mx-auto px-4 py-16">
+            <h2 class="text-4xl sm:text-5xl font-black title-font text-center mb-12 neon-text">CÁC CỤM MÁY CHỦ</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <!-- 1. CORNSURVIVAL CARD -->
+                <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between tilt-card">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-bold text-cyan-400 title-font flex items-center gap-1.5">
+                                <span class="status-dot"></span> ĐANG HOẠT ĐỘNG
+                            </span>
+                            <span class="text-xs text-gray-400 font-mono">1.20+</span>
+                        </div>
+                        <h3 class="text-3xl font-black title-font neon-text mb-3">
+                            SURVIVAL
+                        </h3>
+                        <p class="text-sm text-gray-300 mb-6 leading-relaxed">
+                            Cụm Sinh Tồn cốt lõi với hệ thống Bảng Xếp Hạng, Xử Phạt (Bans), Live Map, Slimefun, Kỹ Năng
+                            và Boss thế giới.
+                        </p>
+                        <div class="space-y-2 mb-6">
+                            <div class="flex items-center justify-between text-xs py-1.5 border-b border-white/5">
+                                <span class="text-gray-400 title-font">TRẠNG THÁI:</span>
+                                <span class="font-bold text-cyan-400" id="card-survival-status">Đang tải...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <a href="/survival/"
+                            class="cyber-btn w-full py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 title-font">
+                            VÀO TRANG SURVIVAL
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 2. CORNSMP CARD -->
+                <div class="glass-panel rounded-2xl p-6 flex flex-col justify-between tilt-card">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-bold text-cyan-400 title-font flex items-center gap-1.5">
+                                <span class="status-dot"></span> ĐANG HOẠT ĐỘNG
+                            </span>
+                            <span class="text-xs text-gray-400 font-mono">1.20+</span>
+                        </div>
+                        <h3 class="text-3xl font-black title-font neon-text mb-3">
+                            CORN SMP
+                        </h3>
+                        <p class="text-sm text-gray-300 mb-6 leading-relaxed">
+                            Cụm Sinh Tồn Nhiều Người Chơi: Trải nghiệm SMP nguyên bản kết hợp Lifesteal, Liên Minh Bang
+                            Hội và Chợ Trời.
+                        </p>
+                        <div class="space-y-2 mb-6">
+                            <div class="flex items-center justify-between text-xs py-1.5 border-b border-white/5">
+                                <span class="text-gray-400 title-font">TRẠNG THÁI:</span>
+                                <span class="font-bold text-cyan-400" id="card-smp-status">Đang tải...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <a href="/smp/"
+                            class="cyber-btn w-full py-3 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 title-font">
+                            VÀO TRANG SMP
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 3. SKYBLOCK (EXPANSION) -->
+                <div
+                    class="glass-panel rounded-2xl p-6 flex flex-col justify-between opacity-80 hover:opacity-100 tilt-card">
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="text-xs font-bold text-purple-400 title-font">
+                                SẮP RA MẮT
+                            </span>
+                            <span class="text-xs text-gray-400 font-mono">1.20+</span>
+                        </div>
+                        <h3 class="text-3xl font-black title-font neon-text mb-3">
+                            SKYBLOCK
+                        </h3>
+                        <p class="text-sm text-gray-300 mb-6 leading-relaxed">
+                            Chế độ sinh tồn đảo bay độc lập: Hệ thống nhiệm vụ tự động, đảo bay tùy biến, rương kho báu
+                            và thám hiểm không gian.
+                        </p>
+                        <div class="space-y-2 mb-6">
+                            <div class="flex items-center justify-between text-xs py-1.5 border-b border-white/5">
+                                <span class="text-gray-400 title-font">TIẾN ĐỘ:</span>
+                                <span class="font-bold text-purple-400">75% Hoàn thiện</span>
+                            </div>
+                            <div class="flex items-center justify-between text-xs py-1.5 border-b border-white/5">
+                                <span class="text-gray-400 title-font">DỰ KIẾN:</span>
+                                <span class="font-mono text-gray-300">Mùa Đông 2026</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-2">
+                        <button disabled
+                            class="glass-panel w-full py-3 px-4 rounded-xl text-gray-400 font-bold text-sm cursor-not-allowed title-font">
+                            ĐANG THI CÔNG
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- TÀI NGUYÊN (MOD + RSP, TOOL, MC PE) -->
+        <section id="resources" class="max-w-6xl mx-auto px-4 py-16">
+            <h2 class="text-4xl sm:text-5xl font-black title-font text-center mb-12 neon-text">TÀI NGUYÊN</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- MOD + RSP -->
+                <div class="glass-panel rounded-2xl overflow-hidden h-64 tilt-card group">
+                    <div class="w-full h-full flex items-center justify-center relative overflow-hidden">
+                        <img src="/assets/image/databack.png"
+                            class="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0"
+                            style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(34, 211, 238, 0.4));">
+                        </div>
+                        <div class="relative z-10 text-center cursor-pointer w-full h-full flex items-center justify-center"
+                            onclick="window.showDownloadModal()">
+                            <span class="text-2xl font-bold text-white drop-shadow-md title-font">MOD + RSP</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TOOL -->
+                <div class="glass-panel rounded-2xl overflow-hidden h-64 tilt-card group">
+                    <div class="w-full h-full flex items-center justify-center relative overflow-hidden">
+                        <img src="/assets/image/tool.jpg"
+                            class="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0"
+                            style="background: linear-gradient(135deg, rgba(34, 211, 238, 0.4), rgba(139, 92, 246, 0.4));">
+                        </div>
+                        <div class="relative z-10 text-center cursor-pointer w-full h-full flex items-center justify-center"
+                            onclick="document.getElementById('tool-modal').classList.add('active')">
+                            <span class="text-2xl font-bold text-white drop-shadow-md title-font">TOOL</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MC PE -->
+                <div class="glass-panel rounded-2xl overflow-hidden h-64 tilt-card group">
+                    <div class="w-full h-full flex items-center justify-center relative overflow-hidden">
+                        <img src="/assets/image/cree.jpg"
+                            class="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-700">
+                        <div class="absolute inset-0"
+                            style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(34, 211, 238, 0.4));">
+                        </div>
+                        <div class="relative z-10 text-center cursor-pointer w-full h-full flex items-center justify-center"
+                            onclick="window.showMcPeModal()">
+                            <span class="text-2xl font-bold text-white drop-shadow-md title-font">MC PE</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER CHUNG -->
+    <footer class="relative z-10 border-t border-purple-500/30 bg-black/60 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-4 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <!-- Cột trái: Logo & Slogan -->
+                <div class="text-center md:text-left">
+                    <span class="text-2xl font-black title-font neon-text tracking-wider">CORN MC</span>
+                    <p class="text-gray-400 text-sm mt-2">Thế giới sinh tồn đầy thử thách và sáng tạo!</p>
+                </div>
+
+                <!-- Cột phải: Disclaimer & Bản quyền (Bắt buộc) -->
+                <div class="text-center md:text-right max-w-lg">
+                    <p class="text-gray-500 text-xs italic leading-relaxed">
+                        "Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft."
+                    </p>
+                    <p class="text-gray-600 text-xs mt-2 font-medium">
+                        &copy; 2026 CornMC Network. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- AUTH MODAL -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content glass-intense rounded-2xl modal-sm relative">
+            <div class="modal-body">
+                <button class="close-modal absolute top-4 right-4 text-purple-300 hover:text-white text-xl">✕</button>
+
+                <div id="form-login" class="auth-form">
+                    <h2 class="text-3xl font-black title-font neon-text mb-6 text-center">ĐĂNG NHẬP</h2>
+                    <button id="google-login-btn"
+                        class="cyber-btn-secondary w-full py-3 rounded-lg font-bold flex justify-center items-center gap-2 mb-4">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5"> <span>Google
+                            Login</span>
+                    </button>
+                    <div class="flex items-center gap-2 text-xs text-gray-500 mb-4">
+                        <div class="h-px bg-gray-700 flex-1"></div>HOẶC<div class="h-px bg-gray-700 flex-1"></div>
+                    </div>
+
+                    <form id="email-login-form" class="space-y-4">
+                        <input type="text" id="login-email" placeholder="Email hoặc Tên nhân vật"
+                            class="cyber-input w-full p-3 rounded-lg">
+                        <input type="password" id="login-pass" placeholder="Mật khẩu"
+                            class="cyber-input w-full p-3 rounded-lg">
+                        <div class="text-right">
+                            <a href="#" onclick="switchAuthForm('forgot')"
+                                class="text-xs text-cyan-400 hover:underline">Quên mật khẩu?</a>
+                        </div>
+                        <button type="submit" class="cyber-btn w-full py-3 rounded-lg font-bold title-font">ĐĂNG
+                            NHẬP</button>
+                    </form>
+                    <p class="text-center text-sm text-gray-400 mt-4">Chưa có tài khoản? <a href="#"
+                            onclick="switchAuthForm('register')" class="text-purple-400 font-bold hover:underline">Đăng
+                            ký ngay</a></p>
+                </div>
+
+                <div id="form-register" class="auth-form hidden">
+                    <h2 class="text-3xl font-black title-font neon-text mb-6 text-center">ĐĂNG KÝ</h2>
+                    <form id="email-register-form" class="space-y-4">
+                        <input type="text" id="reg-username" placeholder="Tên nhân vật (Ingame)"
+                            class="cyber-input w-full p-3 rounded-lg" required>
+                        <input type="password" id="reg-pass" placeholder="Mật khẩu"
+                            class="cyber-input w-full p-3 rounded-lg" required>
+                        <button type="submit" class="cyber-btn w-full py-3 rounded-lg font-bold title-font">TẠO TÀI
+                            KHOẢN</button>
+                    </form>
+                    <p class="text-center text-sm text-gray-400 mt-4">Đã có tài khoản? <a href="#"
+                            onclick="switchAuthForm('login')" class="text-cyan-400 font-bold hover:underline">Đăng
+                            nhập</a>
+                    </p>
+                </div>
+
+                <div id="form-forgot" class="auth-form hidden">
+                    <h2 class="text-2xl font-black title-font text-white mb-4 text-center">KHÔI PHỤC MẬT KHẨU</h2>
+                    <p class="text-xs text-gray-400 mb-4 text-center">Nhập email bạn đã dùng để đăng ký. Chúng tôi sẽ
+                        gửi link đặt lại mật khẩu.</p>
+                    <form id="forgot-pass-form" class="space-y-4">
+                        <input type="email" id="forgot-email" placeholder="Nhập Email của bạn"
+                            class="cyber-input w-full p-3 rounded-lg" required>
+                        <button type="submit"
+                            class="cyber-btn-secondary w-full py-3 rounded-lg font-bold border-yellow-500 text-yellow-400 title-font">GỬI
+                            YÊU CẦU</button>
+                    </form>
+                    <p class="text-center text-sm mt-4"><a href="#" onclick="switchAuthForm('login')"
+                            class="text-gray-400 hover:text-white">← Quay lại đăng nhập</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE MODAL -->
+    <div id="profile-modal" class="modal">
+        <div class="modal-content glass-intense p-8 rounded-2xl max-w-md">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-black title-font neon-text">HỒ SƠ CÁ NHÂN</h2>
+                <button class="close-modal text-purple-300 hover:text-white">✕</button>
+            </div>
+
+            <form id="profile-form" class="space-y-6">
+                <div class="flex justify-center">
+                    <div class="relative group">
+                        <img id="profile-preview" src=""
+                            class="w-24 h-24 rounded-full border-2 border-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.3)] object-cover">
+                        <div
+                            class="absolute inset-0 rounded-full border-2 border-dashed border-white/50 animate-spin-slow pointer-events-none">
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-bold text-purple-300 uppercase block mb-2 title-font">Tên hiển
+                        thị</label>
+                    <input type="text" id="edit-name"
+                        class="cyber-input w-full px-4 py-3 rounded-lg text-white font-bold"
+                        placeholder="Nhập tên mới...">
+                </div>
+
+                <div>
+                    <label class="block text-cyan-400 text-xs font-bold mb-2 title-font">ID Discord</label>
+                    <input type="text" id="edit-discord-link" class="cyber-input w-full px-4 py-2 rounded-lg text-sm"
+                        placeholder="Nhập ID Discord">
+                </div>
+
+                <div>
+                    <label class="block text-cyan-400 text-xs font-bold mb-2 title-font">Link Website / Facebook</label>
+                    <input type="text" id="edit-website-link" class="cyber-input w-full px-4 py-2 rounded-lg text-sm"
+                        placeholder="https://facebook.com/...">
+                </div>
+
+                <div class="bg-red-900/20 p-4 rounded-xl border border-red-500/30">
+                    <label class="block text-red-400 text-xs font-bold mb-2 title-font">Đổi Mật Khẩu (Để trống nếu không
+                        đổi)</label>
+                    <input type="password" id="edit-new-password"
+                        class="cyber-input w-full px-4 py-2 rounded-lg text-sm mb-2" placeholder="Mật khẩu mới...">
+                    <input type="password" id="edit-confirm-password"
+                        class="cyber-input w-full px-4 py-2 rounded-lg text-sm" placeholder="Xác nhận mật khẩu mới...">
+                </div>
+
+                <button type="submit" class="cyber-btn w-full py-3 rounded-lg font-bold title-font text-lg">
+                    LƯU THAY ĐỔI
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TOOL MODAL -->
+    <div id="tool-modal" class="modal">
+        <div class="modal-content glass-intense rounded-2xl modal-full">
+            <div class="modal-header">
+                <h2 class="text-3xl font-black title-font neon-text flex items-center gap-2 text-cyan-400">
+                    CÔNG CỤ HỖ TRỢ
+                </h2>
+                <button class="close-modal text-cyan-300 hover:text-red-400 transition text-2xl font-bold">✕</button>
+            </div>
+            <div class="flex-1 w-full rounded-xl overflow-hidden bg-black/60 border border-white/10">
+                <iframe src="/tool.html" class="w-full h-full border-none custom-scrollbar"
+                    title="CornMC Tool"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- GLOBAL MODAL NOTIFICATION -->
+    <div id="global-modal" class="modal" style="z-index: 9999;">
+        <div class="modal-content glass-intense rounded-2xl modal-sm text-center border border-purple-500/50">
+            <div class="modal-body">
+                <div id="global-modal-icon" class="text-5xl mb-4">🔔</div>
+                <h3 id="global-modal-title" class="text-2xl font-black title-font text-white mb-2">THÔNG BÁO</h3>
+                <p id="global-modal-message" class="text-gray-300 text-sm mb-6 leading-relaxed"></p>
+                <div id="global-modal-actions" class="flex justify-center gap-4"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script type="module" src="/assets/js/hub.js"></script>
+    <script type="module">
+        import { showCustomModal } from '/assets/js/core.js';
+
+        window.showDownloadModal = () => {
+            const linkShaderpacks = "https://drive.google.com/drive/folders/1ZKLCqALrOFLbDbzW_5DcOfozMk2suMK4?usp=sharing";
+            const linkResourcepacks = "https://drive.google.com/drive/folders/1c0kkKdMumDKh614uJizv4p3stRE5x3d9?usp=sharing";
+            const linkMods = "https://drive.google.com/drive/folders/1RvbSeqH3EGBn-7fIpoOmjeDd4L8EYW-0?usp=sharing";
+            const linkFullfile = "https://drive.google.com/uc?export=download&id=1oPo2PjK5qnnrE9FXfCm_ybS6zFR1eMGA";
+
+            const htmlContent = `
+                <div class="space-y-3 text-center mt-4 pb-2">
+                    <p class="text-gray-300 text-sm mb-4">Chọn mục bạn muốn tải. Hệ thống sẽ chuyển hướng tải trực tiếp về máy!</p>
+                    <a href="${linkShaderpacks}" target="_blank" class="flex items-center justify-between w-full bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 hover:text-white font-bold py-3 px-5 rounded-xl border border-blue-500/50 shadow-[0_0_10px_rgba(59,130,246,0.2)] transition mb-2 no-underline">
+                        <span class="text-base title-font">SHADERPACKS</span>
+                        <span class="text-xl">⬇️</span>
+                    </a>
+                    <a href="${linkResourcepacks}" target="_blank" class="flex items-center justify-between w-full bg-green-600/20 hover:bg-green-600/40 text-green-300 hover:text-white font-bold py-3 px-5 rounded-xl border border-green-500/50 shadow-[0_0_10px_rgba(34,197,94,0.2)] transition mb-2 no-underline">
+                        <span class="text-base title-font">RESOURCEPACKS</span>
+                        <span class="text-xl">⬇️</span>
+                    </a>
+                    <a href="${linkMods}" target="_blank" class="flex items-center justify-between w-full bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 hover:text-white font-bold py-3 px-5 rounded-xl border border-purple-500/50 shadow-[0_0_10px_rgba(168,85,247,0.2)] transition mb-2 no-underline">
+                        <span class="text-base title-font">MODS TỐI ƯU</span>
+                        <span class="text-xl">⬇️</span>
+                    </a>
+                    <a href="${linkFullfile}" target="_blank" class="flex items-center justify-between w-full bg-pink-600/20 hover:bg-pink-600/40 text-pink-300 hover:text-white font-bold py-3 px-5 rounded-xl border border-pink-500/50 shadow-[0_0_10px_rgba(236,72,153,0.2)] transition no-underline">
+                        <span class="text-base title-font">FULLFILE (.ZIP)</span>
+                        <span class="text-xl">⬇️</span>
+                    </a>
+                </div>
+            `;
+            showCustomModal("TẢI TÀI NGUYÊN GAME", htmlContent, "info");
+        };
+
+        window.showMcPeModal = () => {
+            const linkDrive = "https://drive.google.com/file/d/1Q-SBCm5FcK8a9q_7WE3bwV5RKavStbXR/view?usp=sharing";
+            const htmlContent = `
+                <div class="space-y-4 text-center mt-4">
+                    <p class="text-gray-300 text-sm">Phiên bản Minecraft PE đã được cấu hình tối ưu cho <b>CornMC Network</b>.</p>
+                    <div class="glass-panel p-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5">
+                        <p class="text-xs text-cyan-400 mb-2 font-bold title-font">THÔNG TIN FILE CÀI ĐẶT:</p>
+                        <ul class="text-[12px] text-gray-400 text-left list-disc list-inside space-y-1">
+                            <li>Dung lượng: ~450MB</li>
+                            <li>Phiên bản: 1.21+ (Bedrock Edition)</li>
+                            <li>Hỗ trợ hệ điều hành: Android (APK)</li>
+                        </ul>
+                    </div>
+                    <a href="${linkDrive}" target="_blank" class="cyber-btn inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl transition shadow-lg w-full text-sm title-font text-white no-underline">
+                        <span>TẢI XUỐNG NGAY (GOOGLE DRIVE)</span>
+                    </a>
+                </div>
+            `;
+            showCustomModal("TẢI BẢN MINECRAFT PE", htmlContent, "info");
+        };
+
+        // Realtime Player Count
+        async function updateServerStats() {
+            try {
+                const res = await fetch('https://api.mcsrvstat.us/3/play.cornmc.vn');
+                const data = await res.json();
+
+                const networkOnlineEl = document.getElementById('network-online');
+                const survivalStatusEl = document.getElementById('card-survival-status');
+                const smpStatusEl = document.getElementById('card-smp-status');
+
+                if (data.online) {
+                    const onlineCount = data.players ? data.players.online : 0;
+                    const maxCount = data.players ? data.players.max : 200;
+                    if (networkOnlineEl) networkOnlineEl.innerText = `${onlineCount} ĐANG CHƠI`;
+                    if (survivalStatusEl) survivalStatusEl.innerText = `Online (${onlineCount}/${maxCount})`;
+                    if (smpStatusEl) smpStatusEl.innerText = `Online (${Math.max(0, Math.floor(onlineCount * 0.4))} người)`;
+                } else {
+                    if (networkOnlineEl) networkOnlineEl.innerText = "BẢO TRÌ";
+                    if (survivalStatusEl) survivalStatusEl.innerText = "Đang kết nối...";
+                    if (smpStatusEl) smpStatusEl.innerText = "Đang kết nối...";
+                }
+            } catch (e) {
+                console.warn("Lỗi thống kê máy chủ:", e);
+                const networkOnlineEl = document.getElementById('network-online');
+                if (networkOnlineEl) networkOnlineEl.innerText = "SẴN SÀNG";
+            }
+        }
+
+        updateServerStats();
+        setInterval(updateServerStats, 60000);
+    </script>
+</body>
+
+</html>

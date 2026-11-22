@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - CornMiner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Space+Grotesk:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        /* CSS riêng cho Admin Panel */
+        .sidebar-link {
+            transition: all 0.3s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background: rgba(139, 92, 246, 0.1);
+            border-left-color: #22d3ee;
+            color: #fff;
+        }
+
+        .admin-card {
+            background: rgba(15, 15, 26, 0.6);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+    </style>
+</head>
+
+<body class="bg-[#09090b] text-white font-sans h-full overflow-hidden flex">
+
+    <aside class="w-64 h-full bg-[#0f0f1a] border-r border-purple-500/20 flex flex-col z-20">
+        <div class="p-6 border-b border-purple-500/20">
+            <h1 class="text-2xl font-black title-font neon-text text-center">CORN ADMIN</h1>
+        </div>
+        <nav class="flex-1 overflow-y-auto py-4 space-y-1">
+            <div class="sidebar-link px-6 py-3 text-gray-400" onclick="switchTab('dashboard')">📊 Thống kê chung</div>
+            <div class="sidebar-link px-6 py-3 text-gray-400" onclick="switchTab('users')">👥 Quản lý Người dùng</div>
+            <div class="sidebar-link px-6 py-3 text-gray-400" onclick="switchTab('news')">📰 Quản lý Tin tức</div>
+            <div class="sidebar-link px-6 py-3 text-gray-400" onclick="switchTab('guides')">📘 Quản lý Hướng dẫn</div>
+            <div class="sidebar-link px-6 py-3 text-gray-400" onclick="switchTab('forum')">💬 Duyệt bài Diễn đàn <span
+                    id="pending-badge" class="bg-red-500 text-white text-[10px] px-1.5 rounded ml-2 hidden">0</span>
+            </div>
+            <div class="sidebar-link px-6 py-3 text-gray-400" onclick="switchTab('punishments')">🔨 Lịch sử Xử phạt
+            </div>
+        </nav>
+        <div class="p-4 border-t border-purple-500/20">
+            <a href="/" class="block text-center text-sm text-gray-500 hover:text-white mb-3">⬅️ Về trang
+                chủ</a>
+            <button id="logout-btn"
+                class="w-full bg-red-500/10 hover:bg-red-600 text-red-500 hover:text-white py-2 rounded font-bold transition">Đăng
+                xuất</button>
+        </div>
+    </aside>
+
+    <main class="flex-1 h-full overflow-y-auto bg-[url('assets/image/nen1.png')] bg-cover bg-center relative">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm z-0"></div>
+        <div class="relative z-10 p-8 max-w-7xl mx-auto">
+
+            <div id="tab-dashboard" class="admin-tab">
+                <h2 class="text-3xl font-bold mb-6 title-font text-cyan-400">TỔNG QUAN HỆ THỐNG</h2>
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="admin-card p-6 rounded-xl">
+                        <h3 class="text-gray-400 text-sm">Tổng thành viên</h3>
+                        <p id="stat-users" class="text-4xl font-bold text-white mt-2">...</p>
+                    </div>
+                    <div class="admin-card p-6 rounded-xl">
+                        <h3 class="text-gray-400 text-sm">Bài chờ duyệt</h3>
+                        <p id="stat-pending" class="text-4xl font-bold text-yellow-400 mt-2">...</p>
+                    </div>
+                    <div class="admin-card p-6 rounded-xl">
+                        <h3 class="text-gray-400 text-sm">Tin tức</h3>
+                        <p id="stat-news" class="text-4xl font-bold text-cyan-400 mt-2">...</p>
+                    </div>
+                    <div class="admin-card p-6 rounded-xl">
+                        <h3 class="text-gray-400 text-sm">Hướng dẫn</h3>
+                        <p id="stat-guides" class="text-4xl font-bold text-purple-400 mt-2">...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-users" class="admin-tab hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold title-font text-white">QUẢN LÝ NGƯỜI DÙNG</h2>
+                    <input type="text" id="search-user" placeholder="🔍 Tìm kiếm user..."
+                        class="bg-black/50 border border-purple-500/30 px-4 py-2 rounded text-white w-64">
+                </div>
+                <div class="admin-card rounded-xl overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-purple-900/20 text-xs uppercase text-gray-400">
+                            <tr>
+                                <th class="p-4">User</th>
+                                <th class="p-4">Email</th>
+                                <th class="p-4">Liên kết</th>
+                                <th class="p-4">Role</th>
+                                <th class="p-4">Trạng thái</th>
+                                <th class="p-4 text-right">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-list" class="text-sm divide-y divide-gray-800"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-news" class="admin-tab hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold title-font text-white">QUẢN LÝ TIN TỨC</h2>
+                    <button onclick="openEditor('news')"
+                        class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded font-bold">+ Thêm tin
+                        mới</button>
+                </div>
+                <div id="news-list" class="grid grid-cols-1 gap-4"></div>
+            </div>
+
+            <div id="tab-guides" class="admin-tab hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold title-font text-white">QUẢN LÝ HƯỚNG DẪN</h2>
+                    <button onclick="openEditor('guides')"
+                        class="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded font-bold">+ Thêm hướng
+                        dẫn</button>
+                </div>
+                <div id="guides-list" class="grid grid-cols-1 gap-4"></div>
+            </div>
+
+            <div id="tab-forum" class="admin-tab hidden">
+                <h2 class="text-3xl font-bold mb-6 title-font text-white">DUYỆT BÀI VIẾT</h2>
+                <div id="forum-pending-list" class="space-y-4"></div>
+            </div>
+
+            <div id="tab-punishments" class="admin-tab hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-3xl font-bold title-font text-white">HỆ THỐNG XỬ PHẠT (LITEBANS)</h2>
+                    <button onclick="loadPunishments(window.currentPunishType)"
+                        class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded font-bold transition">🔄 Làm
+                        mới</button>
+                </div>
+
+                <!-- Nút phân loại -->
+                <div class="flex gap-2 mb-6 bg-black/40 p-2 rounded-lg border border-purple-500/20 w-fit">
+                    <button onclick="loadPunishments('bans')" id="btn-type-bans"
+                        class="punish-tab-btn bg-red-600 text-white px-4 py-2 rounded text-sm font-bold transition">BANS
+                        (CẤM)</button>
+                    <button onclick="loadPunishments('mutes')" id="btn-type-mutes"
+                        class="punish-tab-btn text-gray-400 hover:text-white px-4 py-2 rounded text-sm font-bold transition">MUTES
+                        (CẤM CHÁT)</button>
+                    <button onclick="loadPunishments('warnings')" id="btn-type-warnings"
+                        class="punish-tab-btn text-gray-400 hover:text-white px-4 py-2 rounded text-sm font-bold transition">WARNINGS
+                        (CẢNH CÁO)</button>
+                    <button onclick="loadPunishments('kicks')" id="btn-type-kicks"
+                        class="punish-tab-btn text-gray-400 hover:text-white px-4 py-2 rounded text-sm font-bold transition">KICKS
+                        (ĐUỔI)</button>
+                </div>
+
+                <div class="admin-card rounded-xl overflow-hidden">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-900/50 text-xs uppercase text-gray-400 border-b border-gray-700">
+                            <tr>
+                                <th class="p-4">Người chơi</th>
+                                <th class="p-4">Lý do</th>
+                                <th class="p-4">Người xử lý</th>
+                                <th class="p-4">Ngày xử lý</th>
+                                <th class="p-4" id="th-expires">Hết hạn</th>
+                                <th class="p-4">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody id="punishments-list" class="text-sm divide-y divide-gray-800">
+                            <!-- Data đổ vào đây -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <div id="editor-modal" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-[#0f0f1a] border border-cyan-500/30 w-full max-w-2xl rounded-xl p-6 relative">
+            <button onclick="closeEditor()" class="absolute top-4 right-4 text-gray-400 hover:text-white">✕</button>
+            <h3 class="text-2xl font-bold mb-4 neon-text" id="editor-title">Soạn thảo</h3>
+            <form id="editor-form" class="space-y-4">
+                <input type="hidden" id="edit-id"> <input type="hidden" id="edit-collection">
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Tiêu đề</label>
+                    <input type="text" id="edit-title"
+                        class="w-full bg-black/50 border border-gray-700 rounded p-3 text-white focus:border-cyan-500 outline-none"
+                        required>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Danh mục (Cho Tin tức)</label>
+                    <input type="text" id="edit-cat"
+                        class="w-full bg-black/50 border border-gray-700 rounded p-3 text-white focus:border-cyan-500 outline-none"
+                        placeholder="VD: SỰ KIỆN, BẢO TRÌ">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-cyan-400 mb-1">Chọn Ảnh Tải Lên</label>
+                    <div class="flex items-center gap-3">
+                        <input type="file" id="edit-image-file" accept="image/*"
+                            class="w-full text-sm text-gray-300 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-bold file:bg-cyan-600 file:text-white hover:file:bg-cyan-500 cursor-pointer bg-black/50 border border-gray-700 rounded-lg outline-none transition">
+
+                        <input type="hidden" id="edit-image">
+                    </div>
+
+                    <p id="upload-status" class="text-xs mt-2 hidden"></p>
+
+                    <img id="edit-image-preview" src=""
+                        class="hidden mt-3 h-40 w-full object-cover rounded-lg border border-cyan-500/50 shadow-lg">
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-400 mb-1">Nội dung (Hỗ trợ HTML cơ bản)</label>
+                    <textarea id="edit-content" rows="8"
+                        class="w-full bg-black/50 border border-gray-700 rounded p-3 text-white focus:border-cyan-500 outline-none"
+                        required></textarea>
+                </div>
+                <button type="submit"
+                    class="w-full bg-gradient-to-r from-cyan-600 to-purple-600 py-3 rounded font-bold text-white hover:opacity-90">LƯU
+                    BÀI VIẾT</button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="assets/js/admin.js"></script>
+</body>
+
+</html>
