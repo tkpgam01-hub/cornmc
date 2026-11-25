@@ -85,11 +85,33 @@
             </div>
 
             <div id="tab-users" class="admin-tab hidden">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-3xl font-bold title-font text-white">QUẢN LÝ NGƯỜI DÙNG</h2>
-                    <input type="text" id="search-user" placeholder="🔍 Tìm kiếm user..."
-                        class="bg-black/50 border border-purple-500/30 px-4 py-2 rounded text-white w-64">
+                <div class="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
+                    <div>
+                        <h2 class="text-3xl font-bold title-font text-white">QUẢN LÝ NGƯỜI DÙNG</h2>
+                        <p class="text-xs text-gray-400 mt-1">Hiển thị <span id="filtered-users-count" class="text-cyan-400 font-bold">0</span> / <span id="total-users-count" class="text-white font-bold">0</span> thành viên</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3">
+                        <select id="filter-role"
+                            class="bg-black/60 border border-cyan-500/40 px-3 py-2 rounded text-sm text-cyan-300 font-bold outline-none focus:border-cyan-400">
+                            <option value="all" class="bg-gray-900">📋 Tất cả Role</option>
+                            <option value="staff_all" class="bg-gray-900">🛡️ Toàn bộ BQT (Trừ Member)</option>
+                            <option value="admin" class="bg-gray-900">👑 ADMIN</option>
+                            <option value="dev" class="bg-gray-900">💻 DEV</option>
+                            <option value="mod" class="bg-gray-900">⚔️ MOD</option>
+                            <option value="staff" class="bg-gray-900">🛡️ STAFF</option>
+                            <option value="media" class="bg-gray-900">🎬 MEDIA</option>
+                            <option value="helper" class="bg-gray-900">🤝 HELPER</option>
+                            <option value="vip" class="bg-gray-900">⭐ VIP</option>
+                            <option value="member" class="bg-gray-900">👤 MEMBER</option>
+                        </select>
+                        <input type="text" id="search-user" placeholder="🔍 Tìm kiếm user..."
+                            class="bg-black/50 border border-purple-500/30 px-4 py-2 rounded text-white w-64 outline-none focus:border-purple-400">
+                    </div>
                 </div>
+
+                <!-- Thanh lọc nhanh theo Role (Pills) -->
+                <div id="role-filter-pills" class="flex flex-wrap gap-2 mb-5"></div>
+
                 <div class="admin-card rounded-xl overflow-hidden">
                     <table class="w-full text-left">
                         <thead class="bg-purple-900/20 text-xs uppercase text-gray-400">

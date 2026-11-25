@@ -447,6 +447,29 @@ function setupProfileAndDiscordVerify() {
 // ==========================================
 // 3. QUẢN LÝ USER (ADMIN MODAL)
 // ==========================================
+function applyHubAdminFilter() {
+    const val = (document.getElementById('user-search')?.value || '').toLowerCase().trim();
+    const roleFilter = document.getElementById('user-role-filter')?.value || 'all';
+    let visibleCount = 0;
+
+    document.querySelectorAll('.user-row').forEach(row => {
+        const searchStr = row.dataset.search || '';
+        const rowRole = row.dataset.role || 'member';
+        const matchSearch = !val || searchStr.includes(val);
+        const matchRole =
+            roleFilter === 'all' ? true :
+            roleFilter === 'staff_all' ? ['admin', 'dev', 'mod', 'staff', 'media', 'helper'].includes(rowRole) :
+            rowRole === roleFilter;
+
+        const visible = matchSearch && matchRole;
+        row.style.display = visible ? '' : 'none';
+        if (visible) visibleCount++;
+    });
+
+    const totalEl = document.getElementById('total-users-count');
+    if (totalEl) totalEl.innerText = visibleCount;
+}
+
 window.handleRoleChange = async (uid, newRole) => {
     showCustomModal(
         "XÁC NHẬN PHÂN QUYỀN",
@@ -455,6 +478,7 @@ window.handleRoleChange = async (uid, newRole) => {
         async () => {
             try {
                 await editDocument('users', uid, { role: newRole });
+                renderAdminTable();
                 showCustomModal("THÀNH CÔNG", "Đã cập nhật quyền thành công!", "info");
             } catch (e) { showCustomModal("LỖI", e.message, "danger"); }
         }
@@ -484,16 +508,15 @@ async function renderAdminTable() {
 
     try {
         const users = await fetchAllUsers();
-        const totalEl = document.getElementById('total-users-count');
-        if (totalEl) totalEl.innerText = users.length;
 
         tbody.innerHTML = users.map(u => {
             const isMe = currentUser && currentUser.uid === u.id;
             const avatar = u.photoURL || `https://mc-heads.net/avatar/${u.username}`;
             const roles = ['member', 'vip', 'media', 'helper', 'staff', 'mod', 'dev', 'admin'];
+            const uRole = u.role || 'member';
 
             return `
-            <tr class="hover:bg-white/5 transition border-b border-purple-500/10 user-row" data-search="${(u.username || '').toLowerCase()} ${(u.email || '').toLowerCase()}">
+            <tr class="hover:bg-white/5 transition border-b border-purple-500/10 user-row" data-role="${uRole}" data-search="${(u.username || '').toLowerCase()} ${(u.email || '').toLowerCase()}">
                 <td class="p-4 flex items-center gap-3">
                     <img src="${avatar}" class="w-8 h-8 rounded border border-purple-500/30">
                     <div>
@@ -504,14 +527,19 @@ async function renderAdminTable() {
                 <td class="p-4 text-gray-400 text-xs">${u.joinedAt ? new Date(u.joinedAt.seconds * 1000).toLocaleDateString() : 'N/A'}</td>
                 <td class="p-4">
                     <select onchange="window.handleRoleChange('${u.id}', this.value)" class="bg-black/50 border border-purple-500/30 text-xs text-white rounded px-2 py-1 outline-none">
-                        ${roles.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''} class="bg-gray-900">${r.toUpperCase()}</option>`).join('')}
+                        ${roles.map(r => `<option value="${r}" ${uRole === r ? 'selected' : ''} class="bg-gray-900">${r.toUpperCase()}</option>`).join('')}
                     </select>
                 </td>
                 <td class="p-4 text-center">
-                    ${!isMe ? `<button onclick="window.handleDeleteUser('${u.id}', '${u.username}')" class="text-red-500 hover:text-white bg-red-500/10 p-1.5 rounded inline-flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>` : ''}
+                    <div class="flex items-center justify-center gap-2">
+                        ${!isMe && uRole !== 'member' ? `<button onclick="window.handleRoleChange('${u.id}', 'member')" class="text-orange-400 hover:text-white bg-orange-500/10 hover:bg-orange-500/30 px-2 py-1 rounded text-[11px] font-bold border border-orange-500/30 transition" title="Hạ về Member">⬇️ Hạ</button>` : ''}
+                        ${!isMe ? `<button onclick="window.handleDeleteUser('${u.id}', '${u.username}')" class="text-red-500 hover:text-white bg-red-500/10 p-1.5 rounded inline-flex items-center justify-center"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>` : ''}
+                    </div>
                 </td>
             </tr>`;
         }).join('');
+
+        applyHubAdminFilter();
     } catch (e) {
         tbody.innerHTML = `<tr><td colspan="5" class="text-red-500 text-center">Lỗi: ${e.message}</td></tr>`;
     }
@@ -519,14 +547,13 @@ async function renderAdminTable() {
     const searchInput = document.getElementById('user-search');
     if (searchInput && !searchInput.hasAttribute('data-search-bound')) {
         searchInput.setAttribute('data-search-bound', 'true');
-        searchInput.addEventListener('input', function (e) {
-            const val = e.target.value.toLowerCase().trim();
-            document.querySelectorAll('.user-row').forEach(row => {
-                if (row.dataset.search) {
-                    row.style.display = row.dataset.search.includes(val) ? '' : 'none';
-                }
-            });
-        });
+        searchInput.addEventListener('input', applyHubAdminFilter);
+    }
+
+    const roleFilterEl = document.getElementById('user-role-filter');
+    if (roleFilterEl && !roleFilterEl.hasAttribute('data-filter-bound')) {
+        roleFilterEl.setAttribute('data-filter-bound', 'true');
+        roleFilterEl.addEventListener('change', applyHubAdminFilter);
     }
 }
 

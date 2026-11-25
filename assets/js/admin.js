@@ -102,24 +102,97 @@ document.getElementById('edit-image-file')?.addEventListener('change', async (e)
     }
 });
 
-// 4. QUẢN LÝ USER (CÓ BAN/UNBAN & BẢO VỆ ADMIN)
-// 4. QUẢN LÝ USER (CÓ BAN/UNBAN & BẢO VỆ ADMIN & HIỂN THỊ LINK)
-async function loadUsers() {
+// 4. QUẢN LÝ USER (LỌC THEO ROLE, HẠ ROLE NHANH, BAN/UNBAN & BẢO VỆ ADMIN)
+let allUsersCache = [];
+let selectedRoleFilter = 'all';
+
+const ROLE_FILTER_CONFIG = [
+    { key: 'all', label: 'Tất cả', color: 'border-gray-500/40 text-gray-200' },
+    { key: 'staff_all', label: '🛡️ BQT', color: 'border-cyan-500/40 text-cyan-300' },
+    { key: 'admin', label: '👑 Admin', color: 'border-red-500/40 text-red-400' },
+    { key: 'dev', label: '💻 Dev', color: 'border-yellow-500/40 text-yellow-400' },
+    { key: 'mod', label: '⚔️ Mod', color: 'border-emerald-500/40 text-emerald-400' },
+    { key: 'staff', label: '🛡️ Staff', color: 'border-purple-500/40 text-purple-400' },
+    { key: 'media', label: '🎬 Media', color: 'border-pink-500/40 text-pink-400' },
+    { key: 'helper', label: '🤝 Helper', color: 'border-green-500/40 text-green-400' },
+    { key: 'vip', label: '⭐ VIP', color: 'border-amber-500/40 text-amber-300' },
+    { key: 'member', label: '👤 Member', color: 'border-gray-600/40 text-gray-400' }
+];
+
+function renderRoleFilterPills() {
+    const pillsContainer = document.getElementById('role-filter-pills');
+    if (!pillsContainer) return;
+
+    const counts = { all: allUsersCache.length, staff_all: 0 };
+    allUsersCache.forEach(u => {
+        const r = u.role || 'member';
+        counts[r] = (counts[r] || 0) + 1;
+        if (['admin', 'dev', 'mod', 'staff', 'media', 'helper'].includes(r)) {
+            counts.staff_all += 1;
+        }
+    });
+
+    pillsContainer.innerHTML = ROLE_FILTER_CONFIG.map(item => {
+        const count = counts[item.key] || 0;
+        const isActive = selectedRoleFilter === item.key;
+        const activeClass = isActive
+            ? 'bg-cyan-600 text-white border-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.4)]'
+            : `bg-black/40 hover:bg-white/10 ${item.color}`;
+        return `
+            <button onclick="window.setRoleFilter('${item.key}')"
+                class="px-3 py-1.5 rounded-lg text-xs font-bold border transition flex items-center gap-1.5 ${activeClass}">
+                <span>${item.label}</span>
+                <span class="px-1.5 py-0.5 rounded bg-black/40 text-[10px]">${count}</span>
+            </button>
+        `;
+    }).join('');
+}
+
+window.setRoleFilter = (roleKey) => {
+    selectedRoleFilter = roleKey;
+    const selectEl = document.getElementById('filter-role');
+    if (selectEl) selectEl.value = roleKey;
+    renderRoleFilterPills();
+    renderUsersTable();
+};
+
+function renderUsersTable() {
     const list = document.getElementById('user-list');
-    // Sửa colspan từ 5 thành 6 cho vừa số cột
-    list.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">Đang tải...</td></tr>';
-    
-    const users = await fetchAllUsers();
-    
-    list.innerHTML = users.map(u => {
+    if (!list) return;
+
+    const searchVal = (document.getElementById('search-user')?.value || '').toLowerCase().trim();
+
+    const filtered = allUsersCache.filter(u => {
+        const role = u.role || 'member';
+        const matchRole =
+            selectedRoleFilter === 'all' ? true :
+            selectedRoleFilter === 'staff_all' ? ['admin', 'dev', 'mod', 'staff', 'media', 'helper'].includes(role) :
+            role === selectedRoleFilter;
+
+        if (!matchRole) return false;
+        if (!searchVal) return true;
+        const haystack = `${(u.username || '').toLowerCase()} ${(u.email || '').toLowerCase()} ${role.toLowerCase()}`;
+        return haystack.includes(searchVal);
+    });
+
+    const totalEl = document.getElementById('total-users-count');
+    const filteredEl = document.getElementById('filtered-users-count');
+    if (totalEl) totalEl.innerText = allUsersCache.length;
+    if (filteredEl) filteredEl.innerText = filtered.length;
+
+    if (filtered.length === 0) {
+        list.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-gray-500 italic">Không tìm thấy thành viên nào phù hợp bộ lọc.</td></tr>';
+        return;
+    }
+
+    list.innerHTML = filtered.map(u => {
         const isBanned = u.isBanned === true;
         const banClass = isBanned ? 'bg-red-500/20 text-red-500' : 'bg-green-500/20 text-green-500';
         const banText = isBanned ? 'Đã BAN' : 'Hoạt động';
-        
-        // 1. Kiểm tra xem user này có phải là ADMIN không
-        const isAdmin = u.role === 'admin';
+        const currentUserRole = u.role || 'member';
+        const isAdmin = currentUserRole === 'admin';
 
-        // 2. Xử lý Cột Chọn Role (Quyền)
+        // Cột Chọn Role
         let roleDisplay = '';
         if (isAdmin) {
             roleDisplay = `<span class="bg-red-900/50 text-red-400 font-bold px-3 py-1.5 rounded text-xs border border-red-500/30 shadow-[0_0_10px_rgba(248,113,113,0.2)]">👑 ADMIN</span>`;
@@ -127,46 +200,52 @@ async function loadUsers() {
             const roles = ['member', 'vip', 'media', 'helper', 'staff', 'mod', 'dev'];
             roleDisplay = `
                 <select onchange="window.updateUserRole('${u.id}', this.value)" class="bg-black border border-gray-700 text-xs rounded px-2 py-1 text-white hover:border-cyan-500 transition outline-none">
-                    ${roles.map(r => `<option value="${r}" ${u.role === r ? 'selected' : ''}>${r.toUpperCase()}</option>`).join('')}
+                    ${roles.map(r => `<option value="${r}" ${currentUserRole === r ? 'selected' : ''}>${r.toUpperCase()}</option>`).join('')}
                 </select>
             `;
         }
 
-        // 3. Xử lý Cột Nút Bấm Thao Tác (Ban/Unban)
+        // Cột Hành động: Hạ nhanh về Member + Ban/Unban
         let actionButton = '';
         if (isAdmin) {
             actionButton = `<span class="text-[10px] text-gray-600 italic font-bold">VÔ HIỆU HÓA</span>`;
         } else {
+            const safeName = (u.username || 'User').replace(/'/g, "\\'");
+            const demoteBtn = currentUserRole !== 'member'
+                ? `<button onclick="window.demoteToMember('${u.id}', '${safeName}', '${currentUserRole}')"
+                        class="text-xs font-bold px-2.5 py-1 rounded border border-orange-500/60 text-orange-400 hover:bg-orange-500/20 transition"
+                        title="Hạ quyền về Member">
+                        ⬇️ Hạ Role
+                   </button>`
+                : '';
+
             actionButton = `
-                <button onclick="window.toggleBanUser('${u.id}', ${isBanned})" 
-                    class="text-xs font-bold px-3 py-1 rounded border ${isBanned ? 'border-green-500 text-green-500 hover:bg-green-500/10' : 'border-red-500 text-red-500 hover:bg-red-500/10'} transition">
-                    ${isBanned ? 'MỞ KHÓA' : 'BAN'}
-                </button>
+                <div class="flex items-center justify-end gap-2">
+                    ${demoteBtn}
+                    <button onclick="window.toggleBanUser('${u.id}', ${isBanned})"
+                        class="text-xs font-bold px-3 py-1 rounded border ${isBanned ? 'border-green-500 text-green-500 hover:bg-green-500/10' : 'border-red-500 text-red-500 hover:bg-red-500/10'} transition">
+                        ${isBanned ? 'MỞ KHÓA' : 'BAN'}
+                    </button>
+                </div>
             `;
         }
 
-        // 🟢 4. Xử lý Cột Liên Kết (Discord & MXH)
+        // Cột Liên Kết (Discord & MXH)
         let socialsHtml = '';
         if (u.discordLink || u.websiteLink) {
             let links = [];
-            
-            // Xử lý nút Discord
             if (u.discordLink) {
                 const isId = /^\d+$/.test(u.discordLink);
                 const link = isId ? `https://discordapp.com/users/${u.discordLink}` : u.discordLink;
                 links.push(`<a href="${link}" target="_blank" class="px-2 py-1 rounded bg-[#5865F2]/20 hover:bg-[#5865F2]/40 text-[#5865F2] hover:text-white border border-[#5865F2]/30 transition text-[10px] font-bold flex items-center gap-1 w-max" title="${u.discordLink}">💬 Discord</a>`);
             }
-            
-            // Xử lý nút MXH tự động nhận diện
             if (u.websiteLink) {
                 let link = u.websiteLink.toLowerCase();
                 let pName = "Website";
                 let pColor = "text-cyan-400 border-cyan-500/30 bg-cyan-500/20 hover:bg-cyan-500/40";
-                
                 if (link.includes("facebook.com") || link.includes("fb.com")) { pName = "Facebook"; pColor = "text-blue-400 border-blue-500/30 bg-blue-600/20 hover:bg-blue-600/40"; }
                 else if (link.includes("youtube.com") || link.includes("youtu.be")) { pName = "YouTube"; pColor = "text-red-400 border-red-500/30 bg-red-600/20 hover:bg-red-600/40"; }
                 else if (link.includes("tiktok.com")) { pName = "TikTok"; pColor = "text-gray-300 border-gray-500/30 bg-gray-600/20 hover:bg-gray-600/40"; }
-
                 links.push(`<a href="${u.websiteLink}" target="_blank" class="px-2 py-1 rounded ${pColor} hover:text-white transition text-[10px] font-bold flex items-center gap-1 w-max" title="${u.websiteLink}">🌐 ${pName}</a>`);
             }
             socialsHtml = `<div class="flex flex-col gap-1.5">${links.join('')}</div>`;
@@ -175,48 +254,82 @@ async function loadUsers() {
         }
 
         return `
-        <tr class="hover:bg-white/5 transition border-b border-white/5 user-row" data-search="${(u.username || '').toLowerCase()} ${(u.email || '').toLowerCase()}">
+        <tr class="hover:bg-white/5 transition border-b border-white/5 user-row">
             <td class="p-4 flex items-center gap-3">
                 <img src="${u.photoURL || `https://mc-heads.net/avatar/${u.username}`}" class="w-8 h-8 rounded border border-gray-700 object-cover bg-black">
                 <span class="font-bold text-white">${u.username}</span>
             </td>
             <td class="p-4 text-gray-400 text-xs">${u.email}</td>
-            <td class="p-4">${socialsHtml}</td> <td class="p-4">${roleDisplay}</td>
+            <td class="p-4">${socialsHtml}</td>
+            <td class="p-4">${roleDisplay}</td>
             <td class="p-4"><span class="text-xs px-2 py-1 rounded font-bold ${banClass}">${banText}</span></td>
-            <td class="p-4 text-right">
-                ${actionButton}
-            </td>
+            <td class="p-4 text-right">${actionButton}</td>
         </tr>`;
     }).join('');
+}
 
-    // Gắn sự kiện tìm kiếm
+async function loadUsers() {
+    const list = document.getElementById('user-list');
+    list.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-gray-500">Đang tải...</td></tr>';
+
+    allUsersCache = await fetchAllUsers();
+    renderRoleFilterPills();
+    renderUsersTable();
+
     const searchInput = document.getElementById('search-user');
     if (searchInput && !searchInput.hasAttribute('data-search-bound')) {
         searchInput.setAttribute('data-search-bound', 'true');
-        searchInput.addEventListener('input', function(e) {
-            const val = e.target.value.toLowerCase().trim();
-            document.querySelectorAll('#user-list tr.user-row').forEach(row => {
-                if (row.dataset.search) {
-                    row.style.display = row.dataset.search.includes(val) ? '' : 'none';
-                }
-            });
+        searchInput.addEventListener('input', () => renderUsersTable());
+    }
+
+    const roleSelect = document.getElementById('filter-role');
+    if (roleSelect && !roleSelect.hasAttribute('data-filter-bound')) {
+        roleSelect.setAttribute('data-filter-bound', 'true');
+        roleSelect.addEventListener('change', (e) => {
+            window.setRoleFilter(e.target.value);
         });
     }
 }
 
 window.updateUserRole = async (uid, newRole) => {
-    if(confirm(`Đổi quyền user này thành ${newRole}?`)) {
-        await editDocument('users', uid, { role: newRole });
-        showCustomModal("THÀNH CÔNG", "Đã cập nhật!", "info");
+    if (confirm(`Đổi quyền user này thành ${newRole.toUpperCase()}?`)) {
+        try {
+            await editDocument('users', uid, { role: newRole });
+            const target = allUsersCache.find(u => u.id === uid);
+            if (target) target.role = newRole;
+            renderRoleFilterPills();
+            renderUsersTable();
+            showCustomModal("THÀNH CÔNG", `Đã cập nhật quyền thành ${newRole.toUpperCase()}!`, "info");
+        } catch (err) {
+            showCustomModal("LỖI", getFirebaseErrorMessage(err), "danger");
+            renderUsersTable();
+        }
+    } else {
+        // Hoàn tác hiển thị dropdown nếu bấm Hủy
+        renderUsersTable();
+    }
+};
+
+window.demoteToMember = async (uid, username, oldRole) => {
+    if (confirm(`Bạn có chắc muốn HẠ QUYỀN [${username}] từ ${oldRole.toUpperCase()} xuống MEMBER?`)) {
+        try {
+            await editDocument('users', uid, { role: 'member' });
+            const target = allUsersCache.find(u => u.id === uid);
+            if (target) target.role = 'member';
+            renderRoleFilterPills();
+            renderUsersTable();
+            showCustomModal("THÀNH CÔNG", `Đã hạ quyền ${username} xuống MEMBER!`, "info");
+        } catch (err) {
+            showCustomModal("LỖI", getFirebaseErrorMessage(err), "danger");
+        }
     }
 };
 
 window.toggleBanUser = async (uid, currentStatus) => {
-    // Nếu currentStatus = true (đang ban) -> Muốn mở -> isBanned = false
     const action = currentStatus ? "MỞ KHÓA" : "BAN VĨNH VIỄN";
-    if(confirm(`Bạn có chắc muốn ${action} người dùng này?`)) {
+    if (confirm(`Bạn có chắc muốn ${action} người dùng này?`)) {
         await editDocument('users', uid, { isBanned: !currentStatus });
-        loadUsers(); // Load lại bảng
+        loadUsers();
     }
 };
 

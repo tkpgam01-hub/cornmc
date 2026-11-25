@@ -582,12 +582,27 @@
             </div>
 
             <div class="modal-body flex flex-col">
-                <div class="flex justify-between items-center mb-4">
+                <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
                     <div class="text-cyan-400 font-bold">
                         Tổng: <span id="total-users-count" class="text-white">0</span> thành viên
                     </div>
-                    <input type="text" id="user-search" placeholder="🔍 Tìm tên hoặc email..."
-                        class="cyber-input px-4 py-2 rounded-lg w-64 border border-purple-500/30">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <select id="user-role-filter"
+                            class="cyber-input px-3 py-2 rounded-lg text-xs font-bold text-cyan-300 border border-cyan-500/30 bg-black/60">
+                            <option value="all" class="bg-gray-900">Tất cả Role</option>
+                            <option value="staff_all" class="bg-gray-900">🛡️ Toàn bộ BQT</option>
+                            <option value="admin" class="bg-gray-900">ADMIN</option>
+                            <option value="dev" class="bg-gray-900">DEV</option>
+                            <option value="mod" class="bg-gray-900">MOD</option>
+                            <option value="staff" class="bg-gray-900">STAFF</option>
+                            <option value="media" class="bg-gray-900">MEDIA</option>
+                            <option value="helper" class="bg-gray-900">HELPER</option>
+                            <option value="vip" class="bg-gray-900">VIP</option>
+                            <option value="member" class="bg-gray-900">MEMBER</option>
+                        </select>
+                        <input type="text" id="user-search" placeholder="🔍 Tìm tên hoặc email..."
+                            class="cyber-input px-4 py-2 rounded-lg w-64 border border-purple-500/30">
+                    </div>
                 </div>
 
                 <div class="flex-1 overflow-y-auto custom-scrollbar bg-black/40 rounded-xl border border-purple-500/20">
