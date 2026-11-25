@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="vi" class="h-full">
 
@@ -28,25 +27,28 @@
     <nav class="nav-bar">
         <div class="w-full max-w-[1400px] mx-auto px-4 lg:px-6">
             <div class="flex items-center justify-between h-20">
-                <a href="/" class="flex items-center space-x-3 group">
-                    <div class="w-12 h-12 rounded-lg glass-panel flex items-center justify-center border border-cyan-500/30 group-hover:border-cyan-400 transition">
+                <a href="/" data-hub-link class="flex items-center space-x-3 group">
+                    <div
+                        class="w-12 h-12 rounded-lg glass-panel flex items-center justify-center border border-cyan-500/30 group-hover:border-cyan-400 transition">
                         <img src="/assets/icon/serverlogoo.png" alt="CornMC" class="w-full h-full object-cover">
                     </div>
                     <div>
                         <span class="text-2xl font-black title-font neon-text tracking-wider block">CORNSMP</span>
-                        <span class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest block -mt-1 group-hover:text-yellow-400 transition">« CORNHUB PORTAL</span>
+                        <span
+                            class="text-[10px] text-cyan-400 font-bold uppercase tracking-widest block -mt-1 group-hover:text-yellow-400 transition">«
+                            CORNHUB PORTAL</span>
                     </div>
                 </a>
 
                 <div class="hidden md:flex items-center space-x-2">
-                    <a href="/" class="nav-link title-font text-cyan-300 font-bold">🌐 CORNHUB</a>
-                    <a href="/survival/" class="nav-link title-font">CORNSURVIVAL</a>
+                    <a href="/" data-hub-link class="nav-link title-font text-cyan-300 font-bold">🌐 CORNHUB</a>
                     <a href="#about" class="nav-link active title-font">GIỚI THIỆU SMP</a>
-                    <a href="https://discord.gg/cornmc" target="_blank" class="nav-link title-font">DISCORD</a>
+                    <a href="https://bans.cornmc.vn/" target="_blank" class="nav-link title-font">XỬ PHẠT</a>
+                    <a href="https://dsc.gg/cornmc" target="_blank" class="nav-link title-font">DISCORD</a>
                 </div>
 
                 <div class="flex items-center space-x-3">
-                    <a href="/" class="cyber-btn-secondary px-4 py-2 rounded-lg text-xs font-bold title-font">
+                    <a href="/" data-hub-link class="cyber-btn-secondary px-4 py-2 rounded-lg text-xs font-bold title-font">
                         CỔNG CORNHUB ➔
                     </a>
                 </div>
@@ -64,7 +66,8 @@
             </div>
 
             <div class="max-w-5xl mx-auto text-center relative z-10">
-                <h1 class="text-6xl sm:text-7xl md:text-8xl font-black title-font neon-text mb-6 leading-none drop-shadow-[0_0_25px_rgba(139,92,246,0.6)]">
+                <h1
+                    class="text-6xl sm:text-7xl md:text-8xl font-black title-font neon-text mb-6 leading-none drop-shadow-[0_0_25px_rgba(139,92,246,0.6)]">
                     CORN SMP
                 </h1>
 
@@ -73,13 +76,13 @@
                     THẾ GIỚI SINH TỒN MULTIPLAYER ĐẦY KỊCH TÍNH
                 </p>
 
-                <!-- Server IP Box (Velocity Hub IP) -->
+                <!-- Server IP Box -->
                 <div class="flex flex-wrap items-center justify-center gap-4 mb-8">
-                    <button onclick="navigator.clipboard.writeText('play.cornmc.vn'); alert('Đã sao chép IP Máy Chủ: play.cornmc.vn');"
+                    <button id="copy-ip-btn"
                         class="cyber-btn px-10 py-4 rounded-xl font-bold text-base title-font flex items-center space-x-3 hover:scale-110 transition-transform shadow-[0_0_20px_rgba(34,211,238,0.4)]">
                         <span>IP SERVER: PLAY.CORNMC.VN</span>
                     </button>
-                    <a href="/" class="cyber-btn-secondary px-8 py-4 rounded-xl font-bold text-base title-font">
+                    <a href="/" data-hub-link class="cyber-btn-secondary px-8 py-4 rounded-xl font-bold text-base title-font">
                         VỀ TRANG CHỦ HUB
                     </a>
                 </div>
@@ -87,17 +90,17 @@
         </section>
 
         <!-- Features Grid -->
-        <section class="max-w-6xl mx-auto px-4 py-16">
+        <section id="about" class="max-w-6xl mx-auto px-4 py-16">
             <h2 class="text-4xl sm:text-5xl font-black title-font text-center mb-12 neon-text">TÍNH NĂNG NỔI BẬT</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left">
                 <div class="glass-panel p-6 rounded-2xl tilt-card">
                     <div class="text-3xl mb-3">🛡️</div>
-                    <h3 class="text-xl font-bold text-white mb-2 title-font neon-text">GIA TỘC & LIÊN MINH</h3>
+                    <h3 class="text-xl font-bold text-white mb-2 title-font neon-text">GIA TỘC &amp; LIÊN MINH</h3>
                     <p class="text-sm text-gray-300">Thành lập bang hội, chiếm cứ điểm và cùng đồng đội xây dựng đế chế hùng mạnh.</p>
                 </div>
                 <div class="glass-panel p-6 rounded-2xl tilt-card">
                     <div class="text-3xl mb-3">⚡</div>
-                    <h3 class="text-xl font-bold text-white mb-2 title-font neon-text">LIFESTEAL & COMBAT</h3>
+                    <h3 class="text-xl font-bold text-white mb-2 title-font neon-text">LIFESTEAL &amp; COMBAT</h3>
                     <p class="text-sm text-gray-300">Hạ gục đối thủ để chiếm tim sinh lực, hệ thống chiến đấu kịch tính và công bằng.</p>
                 </div>
                 <div class="glass-panel p-6 rounded-2xl tilt-card">
@@ -113,13 +116,11 @@
     <footer class="relative z-10 border-t border-purple-500/30 bg-black/60 backdrop-blur-md">
         <div class="max-w-6xl mx-auto px-4 py-8">
             <div class="flex flex-col md:flex-row justify-between items-center gap-6">
-                <!-- Cột trái: Logo & Slogan -->
                 <div class="text-center md:text-left">
-                    <span class="text-2xl font-black title-font neon-text tracking-wider">CORN MC</span>
-                    <p class="text-gray-400 text-sm mt-2">Thế giới sinh tồn đầy thử thách và sáng tạo!</p>
+                    <span class="text-2xl font-black title-font neon-text tracking-wider">CORN SMP</span>
+                    <p class="text-gray-400 text-sm mt-2">Cụm SMP thuộc hệ thống CornMC Network</p>
                 </div>
 
-                <!-- Cột phải: Disclaimer & Bản quyền (Bắt buộc) -->
                 <div class="text-center md:text-right max-w-lg">
                     <p class="text-gray-500 text-xs italic leading-relaxed">
                         "Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft."
@@ -132,6 +133,19 @@
         </div>
     </footer>
 
-    <script type="module" src="/assets/js/core.js"></script>
+    <script type="module">
+        import { showCustomModal } from '/assets/js/core.js';
+
+        const isSubdomain = window.location.hostname === 'smp.cornmc.vn';
+        const hubUrl = isSubdomain ? 'https://cornmc.vn/' : '/';
+        document.querySelectorAll('[data-hub-link]').forEach(a => a.setAttribute('href', hubUrl));
+
+        document.getElementById('copy-ip-btn')?.addEventListener('click', () => {
+            navigator.clipboard.writeText('play.cornmc.vn').then(() => {
+                showCustomModal("SERVER IP", "Đã sao chép IP Máy Chủ:\nplay.cornmc.vn\nPort PE: 19132", "info");
+            });
+        });
+    </script>
 </body>
+
 </html>
