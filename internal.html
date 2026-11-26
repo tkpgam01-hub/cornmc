@@ -8,21 +8,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .sidebar-link.active {
-            background: rgba(34, 211, 238, 0.15);
-            border-left: 4px solid #22d3ee;
-            color: #22d3ee;
-            text-shadow: 0 0 10px rgba(34, 211, 238, 0.5);
+            background: rgba(14, 116, 144, 0.24);
+            color: #38bdf8;
         }
         /* Tùy chỉnh thanh cuộn siêu đẹp */
         .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.5); border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(34,211,238,0.8); }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.45); border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(148,163,184,0.7); }
     </style>
 </head>
 
@@ -183,7 +181,7 @@
 
                     <!-- Lịch sử Rút Tiền -->
                     <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-purple-500">
-                        <h3 class="text-2xl font-black title-font text-purple-400 mb-6 flex items-center gap-2 border-b border-purple-500/30 pb-4"> Lịch sử rút tiền</h3>
+                        <h3 class="text-2xl font-black title-font text-sky-400 mb-6 flex items-center gap-2 border-b border-slate-700 pb-4"> Lịch sử rút tiền</h3>
                         <div id="withdraw-history-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                             <p class="text-gray-500 text-sm italic">Đang tải lịch sử...</p>
                         </div>
@@ -216,7 +214,7 @@
 
                     <div class="glass-intense p-6 rounded-2xl shadow-[0_0_30px_rgba(139,92,246,0.15)] border-t-4 border-t-purple-500 relative overflow-hidden group">
                         <div class="absolute -right-10 -top-10 w-40 h-40 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"></div>
-                        <h3 class="text-2xl font-black title-font text-purple-400 mb-6 flex items-center gap-2 border-b border-purple-500/30 pb-4 relative z-10"> Nộp báo cáo</h3>
+                        <h3 class="text-2xl font-black title-font text-sky-400 mb-6 flex items-center gap-2 border-b border-slate-700 pb-4 relative z-10"> Nộp báo cáo</h3>
                         
                         <form id="work-report-form" class="space-y-5 relative z-10">
                             <div>
@@ -324,7 +322,7 @@
                 <h2 class="text-4xl font-black title-font neon-text mb-8 text-center">PHÁT LƯƠNG & THƯỞNG</h2>
 
                 <div class="glass-panel p-6 rounded-2xl border-t-4 border-t-purple-500 mb-8 max-w-full overflow-x-auto" id="auto-payroll-panel">
-                    <h3 class="text-2xl font-black title-font text-purple-400 mb-6 border-b border-purple-500/30 pb-4 flex items-center justify-between">
+                    <h3 class="text-2xl font-black title-font text-sky-400 mb-6 border-b border-slate-700 pb-4 flex items-center justify-between">
                         TÍNH LƯƠNG TỰ ĐỘNG
                         <input type="month" id="auto-payroll-month" class="cyber-input p-2 rounded-lg text-sm font-bold w-40" onchange="window.loadAutoPayroll()">
                     </h3>
@@ -532,7 +530,7 @@
             <div id="history-modal" class="modal">
                 <div class="modal-content glass-intense rounded-2xl modal-md border border-purple-500/50 flex flex-col h-[90vh] sm:h-auto sm:max-h-[90vh]">
                     <div class="modal-header border-b border-purple-500/30 bg-black/40 rounded-t-2xl p-4 flex justify-between items-center">
-                        <h2 class="text-2xl font-black title-font neon-text text-purple-400">LỊCH SỬ CHỈNH SỬA</h2>
+                        <h2 class="text-2xl font-black title-font neon-text text-sky-400">LỊCH SỬ CHỈNH SỬA</h2>
                         <button class="close-modal text-gray-400 hover:text-red-400 transition text-xl font-bold">✕</button>
                     </div>
                     <div id="history-content" class="modal-body overflow-y-auto custom-scrollbar p-6 space-y-4">
@@ -545,7 +543,7 @@
             <div id="x2-settings-modal" class="modal">
                 <div class="modal-content glass-intense rounded-2xl modal-md border border-purple-500/50 flex flex-col h-[90vh] sm:h-auto sm:max-h-[90vh]">
                     <div class="modal-header border-b border-purple-500/30 bg-black/40 rounded-t-2xl p-4 flex justify-between items-center">
-                        <h2 class="text-2xl font-black title-font neon-text text-purple-400">CÀI ĐẶT x2 GIỜ LÀM</h2>
+                        <h2 class="text-2xl font-black title-font neon-text text-sky-400">CÀI ĐẶT x2 GIỜ LÀM</h2>
                         <button class="close-modal text-gray-400 hover:text-red-400 transition text-xl font-bold">✕</button>
                     </div>
                     <div class="modal-body overflow-y-auto custom-scrollbar p-6">

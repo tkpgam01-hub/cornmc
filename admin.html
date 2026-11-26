@@ -7,27 +7,28 @@
     <title>Admin Panel - CornMiner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
-        href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;700&family=Space+Grotesk:wght@400;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700&family=Rajdhani:wght@500;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
         /* CSS riêng cho Admin Panel */
         .sidebar-link {
-            transition: all 0.3s;
+            transition: background-color 0.2s ease, color 0.2s ease;
             cursor: pointer;
-            border-left: 3px solid transparent;
+            border-radius: 0.5rem;
+            margin: 0 0.5rem;
         }
 
         .sidebar-link:hover,
         .sidebar-link.active {
-            background: rgba(139, 92, 246, 0.1);
-            border-left-color: #22d3ee;
+            background: rgba(56, 189, 248, 0.14);
             color: #fff;
         }
 
         .admin-card {
-            background: rgba(15, 15, 26, 0.6);
-            border: 1px solid rgba(139, 92, 246, 0.2);
+            background: rgba(15, 20, 30, 0.72);
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            padding: 1.25rem;
         }
     </style>
 </head>
@@ -79,7 +80,7 @@
                     </div>
                     <div class="admin-card p-6 rounded-xl">
                         <h3 class="text-gray-400 text-sm">Hướng dẫn</h3>
-                        <p id="stat-guides" class="text-4xl font-bold text-purple-400 mt-2">...</p>
+                        <p id="stat-guides" class="text-4xl font-bold text-sky-400 mt-2">...</p>
                     </div>
                 </div>
             </div>
@@ -229,8 +230,8 @@
 
                     <p id="upload-status" class="text-xs mt-2 hidden"></p>
 
-                    <img id="edit-image-preview" src=""
-                        class="hidden mt-3 h-40 w-full object-cover rounded-lg border border-cyan-500/50 shadow-lg">
+                    <img id="edit-image-preview" src="/assets/icon/serverlogoo.png" alt="Preview"
+                        class="hidden mt-3 h-40 w-full object-cover rounded-lg border border-sky-500/50 shadow-lg">
                 </div>
                 <div>
                     <label class="block text-xs text-gray-400 mb-1">Nội dung (Hỗ trợ HTML cơ bản)</label>
